@@ -8,7 +8,7 @@ The project follows a modular structure to ensure scalability and maintainabilit
 
 - **Controller Layer (`src/controllers/`):** Handles HTTP requests, input validation, and sends standardized API responses (201, 204, 404).
 - **Service Layer (`src/services/`):** Orchestrates business logic (ID generation, timestamps, and status rules). It is agnostic to the transport layer (Express).
-- **DAO Layer (`src/daos/`):** (Data Access Object) Encapsulates data persistence. Currently manages an in-memory array but is designed for easy migration to a Database (MongoDB/PostgreSQL).
+- **DAO Layer (`src/daos/`):** (Data Access Object) Encapsulates data persistence. Migrated from in-memory storage to PostgreSQL using Knex.js query builder.
 - **Model Layer (`src/models/`):** Defines strict contracts using TypeScript Interfaces and Enums.
 
 ## API Capabilities (CRUD)
@@ -26,7 +26,23 @@ The project follows a modular structure to ensure scalability and maintainabilit
 - **Framework:** [Express.js](https://expressjs.com/)
 - **Linter:** [ESLint v10](https://eslint.org/) (Flat Config)
 - **Development Engine:** [tsx](https://tsx.is/) (TypeScript Execute with native Node 24 support)
+- **Database:** PostgreSQL 15+ (Running on Docker).
+- **Query Builder:** Knex.js (with Migration and Seeding support).
 - **Containerization:** Docker
+
+## Persistence & Security (OWASP Focus)
+
+The system is now fully persistent, moving away from volatile memory.
+
+- **Infrastructure as Code:** Database lifecycle is managed via Docker and Knex Migrations.
+- **SQL Injection Prevention:** Following **OWASP Defense Option 1**, all database interactions use **Parameterized Queries**. By using Knex's built-in methods, user input is never concatenated directly into SQL strings.
+- **Reversibility:** Supports schema versioning with `up` and `down` migration patterns.
+
+### Database Commands
+
+- **Run Migrations:** `npx knex migrate:latest --knexfile knexfile.cjs`
+- **Rollback:** `npx knex migrate:latest --knexfile knexfile.cjs`
+- **Seed Data:** `npx knex seed:run --knexfile knexfile.cjs`
 
 ## Installation & Usage
 

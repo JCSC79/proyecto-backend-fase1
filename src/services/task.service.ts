@@ -4,20 +4,22 @@ import { taskDAO } from '../daos/task.dao.ts';
 
 /**
  * Orchestrates business logic and coordinates data access.
+ * Now fully asynchronous to handle database operations.
  */
 export class TaskService {
-    getAllTasks(): ITask[] {
-        return taskDAO.getAll();
+    async getAllTasks(): Promise<ITask[]> {
+        // We await the DAO promise
+        return await taskDAO.getAll();
     }
 
-    getTaskById(id: string): ITask | undefined {
-        return taskDAO.getById(id);
+    async getTaskById(id: string): Promise<ITask | undefined> {
+        return await taskDAO.getById(id);
     }
 
     /**
-     * Logic for generating new tasks with metadata.
+     * Logic for generating new tasks and persisting them in PostgreSQL.
      */
-    createTask(title: string, description: string): ITask {
+    async createTask(title: string, description: string): Promise<ITask> {
         const newTask: ITask = {
             id: crypto.randomUUID(),
             title,
@@ -26,20 +28,20 @@ export class TaskService {
             createdAt: new Date()
         };
 
-        return taskDAO.create(newTask);
+        // We must await the creation in the database
+        return await taskDAO.create(newTask);
     }
 
-    deleteTask(id: string): boolean {
-        return taskDAO.delete(id);
+    async deleteTask(id: string): Promise<boolean> {
+        return await taskDAO.delete(id);
     }
 
     /**
      * Delegates update operations to the storage layer.
-     * It receives the ID and the partial object with changes.
+     * Uses parameterized queries via Knex to prevent SQL Injection.
      */
-    updateTask(id: string, updates: Partial<ITask>): ITask | undefined {
-        // Here we just act as a bridge to the DAO
-        return taskDAO.update(id, updates);
+    async updateTask(id: string, updates: Partial<ITask>): Promise<ITask | undefined> {
+        return await taskDAO.update(id, updates);
     }
 }
 

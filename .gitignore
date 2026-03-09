@@ -1,3 +1,6 @@
+# .gitignore update
 node_modules
 dist
 .env
+# Add this for Docker/Postgres logs or local data if needed
+pgdata/

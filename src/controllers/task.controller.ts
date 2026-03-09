@@ -4,20 +4,21 @@ import { TaskStatus } from '../models/task.model.ts';
 
 /**
  * Handles incoming HTTP requests and formats outgoing responses.
+ * Now supports asynchronous operations for database persistence.
  */
 class TaskController {
     /**
-     * Retrieves all tasks.
+     * Retrieves all tasks from PostgreSQL.
      */
-    getAll(req: Request, res: Response) {
-        const tasks = taskService.getAllTasks();
+    async getAll(req: Request, res: Response) {
+        const tasks = await taskService.getAllTasks();
         res.json(tasks);
     }
 
     /**
-     * Validates input and creates a new task.
+     * Validates input and creates a new task in the database.
      */
-    create(req: Request, res: Response) {
+    async create(req: Request, res: Response) {
         const { title, description } = req.body;
         
         if (!title?.trim() || !description?.trim()) {
@@ -25,21 +26,21 @@ class TaskController {
                 message: 'Title and description are required and cannot be empty' });
         }
 
-        const newTask = taskService.createTask(title, description);
+        const newTask = await taskService.createTask(title, description);
         res.status(201).json(newTask);
     }
 
     /**
-     * Handles single task retrieval with ID validation.
+     * Handles single task retrieval.
      */
-    getById(req: Request, res: Response) {
+    async getById(req: Request, res: Response) {
         const { id } = req.params;
         
         if (typeof id !== 'string') {
             return res.status(400).json({ message: 'Invalid ID format' });
         }
 
-        const task = taskService.getTaskById(id);
+        const task = await taskService.getTaskById(id);
         if (!task) {
             return res.status(404).json({ message: 'Task not found' });
         }
@@ -47,40 +48,40 @@ class TaskController {
     }
 
     /**
-     * Manages task deletion and returns appropriate status codes.
+     * Manages task deletion via DAO/Knex.
      */
-    delete(req: Request, res: Response) {
+    async delete(req: Request, res: Response) {
         const { id } = req.params;
 
         if (typeof id !== 'string') {
             return res.status(400).json({ message: 'Invalid ID format' });
         }
 
-        const deleted = taskService.deleteTask(id);
+        const deleted = await taskService.deleteTask(id);
         if (!deleted) {
             return res.status(404).json({ message: 'Task not found' });
         }
         res.status(204).send();
     }
+
     /**
-     * Updates an existing task partially.
+     * Updates an existing task partially in the DB.
      */
-    update(req: Request, res: Response) {
+    async update(req: Request, res: Response) {
         const { id } = req.params;
-        const updates = req.body; // Here comes the update data, which can be partial
+        const updates = req.body;
 
         if (typeof id !== 'string') {
             return res.status(400).json({ message: 'Invalid ID format' });
         }
 
-        // New Validation: Ensure that if 'status' is being updated, it must be a valid TaskStatus
         if (updates.status && !Object.values(TaskStatus).includes(updates.status)) {
             return res.status(400).json({ 
                 message: `Invalid status. Allowed values: ${Object.values(TaskStatus).join(', ')}` 
             });
         }
 
-        const updatedTask = taskService.updateTask(id, updates);
+        const updatedTask = await taskService.updateTask(id, updates);
         if (!updatedTask) {
             return res.status(404).json({ message: 'Task not found' });
         }

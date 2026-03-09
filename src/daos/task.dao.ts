@@ -1,47 +1,54 @@
+import knex from 'knex';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import config from '../../knexfile.cjs'; // Path config
 import type { ITask } from '../models/task.model.ts';
+
+// Initialize the database connection
+const db = knex(config.development);
 
 /**
  * Data Access Object.
- * Encapsulates all interactions with the in-memory storage.
+ * Encapsulates all interactions with the PostgreSQL storage via Knex.
  */
 class TaskDAO {
-    // Data storage now resides exclusively here
-    private tasks: ITask[] = [];
+    
+    // The in-memory array is removed. We now point to the 'tasks' table.
 
-    getAll(): ITask[] {
-        return this.tasks;
+    async getAll(): Promise<ITask[]> {
+        // SELECT * FROM tasks
+        return await db<ITask>('tasks').select('*');
     }
 
-    getById(id: string): ITask | undefined {
-        return this.tasks.find(task => task.id === id);
+    async getById(id: string): Promise<ITask | undefined> {
+        // SELECT * FROM tasks WHERE id = id LIMIT 1
+        // Knex uses parameterized queries here to prevent SQL Injection (OWASP)
+        return await db<ITask>('tasks').where({ id }).first();
     }
 
-    create(task: ITask): ITask {
-        this.tasks.push(task);
+    async create(task: ITask): Promise<ITask> {
+        // INSERT INTO tasks (...) VALUES (...)
+        await db<ITask>('tasks').insert(task);
         return task;
     }
 
-    /**
-     * Updates an existing record in the storage array.
-     * Uses Object.assign to merge old data with new updates.
-     */
-    update(id: string, updates: Partial<ITask>): ITask | undefined {
-        const task = this.getById(id);
-        if (!task) return undefined;
+    async update(id: string, updates: Partial<ITask>): Promise<ITask | undefined> {
+        // UPDATE tasks SET ... WHERE id = id
+        const updatedRows = await db<ITask>('tasks')
+            .where({ id })
+            .update(updates);
 
-        // Object.assign takes the 'task' and overwrites only the fields
-        // present in 'updates' (like title or status).
-        Object.assign(task, updates);
-        return task;
+        if (updatedRows === 0) return undefined;
+        return await this.getById(id);
     }
 
-    /**
-     * Removes a record based on ID and returns true if successful.
-     */
-    delete(id: string): boolean {
-        const initialLength = this.tasks.length;
-        this.tasks = this.tasks.filter(task => task.id !== id);
-        return this.tasks.length < initialLength;
+    async delete(id: string): Promise<boolean> {
+        // DELETE FROM tasks WHERE id = id
+        const deletedRows = await db<ITask>('tasks')
+            .where({ id })
+            .del();
+            
+        return deletedRows > 0;
     }
 }
 
