@@ -10,6 +10,16 @@ const PORT = 3000;
 app.use(express.json());
 
 /**
+ * LOGGER MIDDLEWARE
+ * Shows in console: [Time] METHOD /route
+ */
+app.use((req, _res, next) => {
+    const time = new Date().toLocaleTimeString();
+    console.log(`[${time}] ${req.method} ${req.url}`);
+    next(); // Mandatory! Otherwise, the request gets "stuck" here.
+});
+
+/**
  * Routes
  * We delegate the logic to the TaskController methods.
  */

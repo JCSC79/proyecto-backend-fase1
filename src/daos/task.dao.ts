@@ -1,6 +1,6 @@
 import knex from 'knex';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
+// @ts-expect-error
 import config from '../../knexfile.cjs'; // Path config
 import type { ITask } from '../models/task.model.ts';
 

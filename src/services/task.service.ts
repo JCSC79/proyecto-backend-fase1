@@ -39,10 +39,10 @@ export class TaskService {
     /**
      * Delegates update operations to the storage layer.
      * Uses parameterized queries via Knex to prevent SQL Injection.
+     * Partial<ITask> allows updating only specific fields.
      */
     async updateTask(id: string, updates: Partial<ITask>): Promise<ITask | undefined> {
         return await taskDAO.update(id, updates);
     }
 }
-
 export const taskService = new TaskService();

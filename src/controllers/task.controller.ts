@@ -1,10 +1,19 @@
 import type { Request, Response } from 'express';
 import { taskService } from '../services/task.service.ts';
-import { TaskStatus } from '../models/task.model.ts';
+import { createTaskSchema, updateTaskSchema } from '../schemas/task.schema.ts';
+import type { ITask } from '../models/task.model.ts';
+
+/**
+ * Internal interface to help TypeScript understand Yup validation errors
+ * without resorting to the forbidden 'any' type.
+ */
+interface YupValidationError extends Error {
+    errors: string[];
+}
 
 /**
  * Handles incoming HTTP requests and formats outgoing responses.
- * Now supports asynchronous operations for database persistence.
+ * Now supports asynchronous operations and strict schema validation.
  */
 class TaskController {
     /**
@@ -16,18 +25,29 @@ class TaskController {
     }
 
     /**
-     * Validates input and creates a new task in the database.
+     * Validates input using Yup and creates a new task in the database.
      */
     async create(req: Request, res: Response) {
-        const { title, description } = req.body;
-        
-        if (!title?.trim() || !description?.trim()) {
-            return res.status(400).json({ 
-                message: 'Title and description are required and cannot be empty' });
-        }
+        try {
+            // Validation with Yup
+            const validatedData = await createTaskSchema.validate(req.body, { abortEarly: false });
 
-        const newTask = await taskService.createTask(title, description);
-        res.status(201).json(newTask);
+            const newTask = await taskService.createTask(validatedData.title, validatedData.description);
+            res.status(201).json(newTask);
+
+        } catch (error: unknown) {
+            // Check if it is a Yup ValidationError using our safe interface
+            if (error instanceof Error && error.name === 'ValidationError') {
+                const yupError = error as YupValidationError;
+                return res.status(400).json({
+                    message: 'Validation failed',
+                    errors: yupError.errors
+                });
+            }
+
+            // Generic server error
+            res.status(500).json({ message: 'Internal server error' });
+        }
     }
 
     /**
@@ -35,7 +55,7 @@ class TaskController {
      */
     async getById(req: Request, res: Response) {
         const { id } = req.params;
-        
+
         if (typeof id !== 'string') {
             return res.status(400).json({ message: 'Invalid ID format' });
         }
@@ -65,27 +85,40 @@ class TaskController {
     }
 
     /**
-     * Updates an existing task partially in the DB.
+     * Updates an existing task partially in the DB using Yup validation.
      */
     async update(req: Request, res: Response) {
         const { id } = req.params;
-        const updates = req.body;
 
         if (typeof id !== 'string') {
             return res.status(400).json({ message: 'Invalid ID format' });
         }
 
-        if (updates.status && !Object.values(TaskStatus).includes(updates.status)) {
-            return res.status(400).json({ 
-                message: `Invalid status. Allowed values: ${Object.values(TaskStatus).join(', ')}` 
-            });
-        }
+        try {
+            // Validate and cast to Partial<ITask> using 'unknown' as a safe bridge
+            const validatedUpdates = await updateTaskSchema.validate(req.body, {
+                abortEarly: false,
+                stripUnknown: true 
+            }) as unknown as Partial<ITask>;
 
-        const updatedTask = await taskService.updateTask(id, updates);
-        if (!updatedTask) {
-            return res.status(404).json({ message: 'Task not found' });
+            const updatedTask = await taskService.updateTask(id, validatedUpdates);
+
+            if (!updatedTask) {
+                return res.status(404).json({ message: 'Task not found' });
+            }
+
+            res.json(updatedTask);
+
+        } catch (error: unknown) {
+            if (error instanceof Error && error.name === 'ValidationError') {
+                const yupError = error as YupValidationError;
+                return res.status(400).json({
+                    message: 'Validation failed',
+                    errors: yupError.errors
+                });
+            }
+            res.status(500).json({ message: 'Internal server error' });
         }
-        res.json(updatedTask);
     }
 }
 
