@@ -11,6 +11,12 @@ The project follows a modular and decoupled structure:
 - **Messaging Service (`src/services/messaging.service.ts`):** Encapsulates RabbitMQ producer logic using type-safe narrowing.
 - **DAO Layer (`src/daos/`):** Encapsulates data persistence using Knex.js.
 - **Worker (`src/worker.ts`):** An independent consumer process that processes task notifications from the message broker.
+- **Functional Error Handling (`src/utils/result.ts`):** Implements the Result Pattern to encapsulate operation outcomes, ensuring predictable and type-safe error management across the Service and Controller layers.
+
+## Design Patterns
+
+- **Result Pattern:** Used to replace traditional exception-based error handling. It forces the developer to check for success/failure explicitly, leading to more robust code.
+- **Singleton:** Services and DAOs are exported as singletons to maintain a single point of truth and efficient resource usage.
 
 ## API Capabilities (CRUD)
 
@@ -48,7 +54,7 @@ The system is fully persistent, following **OWASP Defense Option 1**:
 ### Database Commands
 
 - **Run Migrations:** `npx knex migrate:latest --knexfile knexfile.cjs`
-- **Rollback:** `npx knex migrate:latest --knexfile knexfile.cjs`
+- **Rollback:** `npx knex migrate:rollback --knexfile knexfile.cjs`
 - **Seed Data:** `npx knex seed:run --knexfile knexfile.cjs`
 
 ## Installation & Usage
@@ -74,6 +80,7 @@ This project requires running two separate processes:
 - **Zero Any Policy:** 100% type coverage for robust development.
 - **Narrowing Strategy:** Custom type-narrowing to handle complex library interfaces (amqplib) safely.
 - **Decoupled Logic:** The business logic is isolated from the infrastructure.
+- **Consistent Error Modeling:** All API responses follow a standardized JSON structure derived from the Result object, providing clear feedback for both success and failure states.
 
 ## Key Technical Features
 

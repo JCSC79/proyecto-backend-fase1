@@ -1,26 +1,40 @@
 import { TaskStatus } from '../models/task.model.ts';
-import type { ITask } from '../models/task.model.ts';
+import type { ITask } from '../models/task.model.ts'; 
 import { taskDAO } from '../daos/task.dao.ts';
 import { messagingService } from './messaging.service.ts';
+import { Result } from '../utils/result.ts';
 
 /**
- * Orchestrates business logic and coordinates data access.
- * Now fully asynchronous to handle database operations.
+ * Orchestrates business logic and coordinates data access using the Result Pattern.
+ * Ensures all operations return a standardized outcome to avoid exception-based flow control.
  */
 export class TaskService {
-    async getAllTasks(): Promise<ITask[]> {
-        // We await the DAO promise
-        return await taskDAO.getAll();
-    }
-
-    async getTaskById(id: string): Promise<ITask | undefined> {
-        return await taskDAO.getById(id);
+    /**
+     * Retrieves all tasks from the persistence layer.
+     * @returns A Result containing an array of tasks.
+     */
+    async getAllTasks(): Promise<Result<ITask[]>> {
+        const tasks = await taskDAO.getAll();
+        return Result.ok(tasks);
     }
 
     /**
-     * Logic for generating new tasks and persisting them in PostgreSQL.
+     * Finds a specific task by its unique identifier.
+     * Returns a failure result if the task does not exist in the database.
      */
-    async createTask(title: string, description: string): Promise<ITask> {
+    async getTaskById(id: string): Promise<Result<ITask>> {
+        const task = await taskDAO.getById(id);
+        if (!task) {
+            return Result.fail<ITask>("Task not found");
+        }
+        return Result.ok(task);
+    }
+
+    /**
+     * Logic for generating new tasks, persisting them in PostgreSQL, 
+     * and triggering asynchronous notifications via RabbitMQ.
+     */
+    async createTask(title: string, description: string): Promise<Result<ITask>> {
         const newTask: ITask = {
             id: crypto.randomUUID(),
             title,
@@ -29,26 +43,38 @@ export class TaskService {
             createdAt: new Date()
         };
 
-        // We must await the creation in the database
         const createdTask = await taskDAO.create(newTask);
 
-        // Notify via RabbitMQ about the new task creation
+        // Notify via RabbitMQ message broker about the new task event
         await messagingService.sendTaskNotification(createdTask);
 
-        return createdTask;
-    }
-
-    async deleteTask(id: string): Promise<boolean> {
-        return await taskDAO.delete(id);
+        return Result.ok(createdTask);
     }
 
     /**
-     * Delegates update operations to the storage layer.
-     * Uses parameterized queries via Knex to prevent SQL Injection.
-     * Partial<ITask> allows updating only specific fields.
+     * Removes a task from the system.
+     * Returns a failure result if the ID matches no existing record.
      */
-    async updateTask(id: string, updates: Partial<ITask>): Promise<ITask | undefined> {
-        return await taskDAO.update(id, updates);
+    async deleteTask(id: string): Promise<Result<boolean>> {
+        const success = await taskDAO.delete(id);
+        if (!success) {
+            return Result.fail<boolean>("Task not found");
+        }
+        return Result.ok(true);
+    }
+
+    /**
+     * Delegates partial update operations to the storage layer.
+     * Uses parameterized queries via Knex to maintain security against SQL Injection.
+     */
+    async updateTask(id: string, updates: Partial<ITask>): Promise<Result<ITask>> {
+        const updatedTask = await taskDAO.update(id, updates);
+        
+        if (!updatedTask) {
+            return Result.fail<ITask>("Task not found");
+        }
+        
+        return Result.ok(updatedTask);
     }
 }
 
