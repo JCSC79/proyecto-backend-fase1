@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger.ts';
 import { taskController } from './controllers/task.controller.ts';
@@ -10,6 +11,7 @@ const PORT = 3000;
 /**
  * Middleware to parse JSON bodies.
  */
+app.use(cors());
 app.use(express.json());
 
 /**
