@@ -1,21 +1,45 @@
-import { Navbar, Alignment, Icon, ProgressBar, Button } from "@blueprintjs/core";
+import React from 'react';
+import { Navbar, Icon, ProgressBar, Button } from "@blueprintjs/core";
 
-export const Header = () => (
-  <Navbar className="bp4-dark">
-    <Navbar.Group align={Alignment.LEFT}>
-      <Navbar.Heading>
-        <Icon icon="style" intent="primary" size={20} style={{ marginRight: '10px' }} />
-        <strong>TASK MANAGER PRO</strong>
-      </Navbar.Heading>
-      <Navbar.Divider />
-      <Button className="bp4-minimal" icon="home" text="Home" />
-      <Button className="bp4-minimal" icon="dashboard" text="Dashboard" active />
-    </Navbar.Group>
-    <Navbar.Group align={Alignment.RIGHT}>
-      <span style={{ marginRight: '10px' }}>Total Progress: 60%</span>
-      <ProgressBar intent="success" value={0.6} style={{ width: '100px', marginRight: '10px' }} />
-      <Button className="bp4-minimal" icon="user" />
-      <Button className="bp4-minimal" icon="cog" />
-    </Navbar.Group>
-  </Navbar>
-);
+/**
+ * Header Component
+ * Enhanced with larger text and icons for better visibility
+ */
+interface HeaderProps {
+  progress: number;
+}
+
+export const Header: React.FC<HeaderProps> = ({ progress }) => {
+  const percentage = Math.round(progress * 100);
+
+  return (
+    <Navbar className="bp4-dark" style={{ height: '60px', padding: '10px 20px' }}>
+      <Navbar.Group align="left">
+        <Navbar.Heading style={{ fontSize: '20px' }}>
+          <Icon icon="layers" intent="primary" size={25} style={{ marginRight: '12px' }} />
+          <strong>TASK MANAGER PRO</strong>
+        </Navbar.Heading>
+        <Navbar.Divider />
+        <Button className="bp4-minimal" icon="home" text="Home" large />
+        <Button className="bp4-minimal" icon="dashboard" text="Dashboard" active large />
+      </Navbar.Group>
+
+      <Navbar.Group align="right">
+        <div style={{ display: 'flex', alignItems: 'center', marginRight: '25px' }}>
+          <span style={{ fontSize: '14px', fontWeight: 500, marginRight: '12px', color: '#a7b6c2' }}>
+            BOARD PROGRESS: {percentage}%
+          </span>
+          <ProgressBar 
+            intent={percentage === 100 ? "success" : "primary"} 
+            value={progress} 
+            style={{ width: '150px', height: '10px' }} 
+            stripes={percentage < 100}
+          />
+        </div>
+        <Navbar.Divider />
+        <Button className="bp4-minimal" icon="user" large />
+        <Button className="bp4-minimal" icon="cog" large />
+      </Navbar.Group>
+    </Navbar>
+  );
+};

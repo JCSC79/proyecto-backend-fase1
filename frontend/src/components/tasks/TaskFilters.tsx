@@ -22,9 +22,9 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
   setStatusFilter 
 }) => {
   return (
-    <Card elevation={Elevation.ZERO} style={{ background: 'transparent', padding: 0, marginBottom: '20px' }}>
+    <Card elevation={Elevation.ZERO} style={{ background: 'transparent', padding: 15, marginBottom: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ width: '400px' }}>
+        <div style={{ width: '500px' }}>
           <InputGroup 
             leftIcon="search" 
             placeholder="Search tasks..." 

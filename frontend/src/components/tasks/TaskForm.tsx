@@ -5,22 +5,17 @@ import api from "../../api/axiosInstance";
 
 /**
  * TaskForm Component
- * Manages the creation of new tasks and synchronizes with the Backend API
+ * UI upgraded to 'large' variants for better accessibility and modern look
  */
 export const TaskForm: React.FC = () => {
   const queryClient = useQueryClient();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
-  // Mutation to send POST request to /tasks
   const mutation = useMutation({
-    mutationFn: (newTask: { title: string; description: string }) => {
-      return api.post("/tasks", newTask);
-    },
+    mutationFn: (newTask: { title: string; description: string }) => api.post("/tasks", newTask),
     onSuccess: () => {
-      // Automatically refetch the list to include the newly created task
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      // Reset form fields
       setTitle("");
       setDescription("");
     },
@@ -35,14 +30,15 @@ export const TaskForm: React.FC = () => {
   return (
     <Card 
       elevation={Elevation.TWO} 
-      style={{ marginBottom: "30px", backgroundColor: "#ebf1f5" }}
+      style={{ marginBottom: "30px", backgroundColor: "#ebf1f5", padding: '25px' }}
     >
-      <H4>Create New Task</H4>
+      <H4 style={{ marginBottom: '20px' }}>Create New Task</H4>
       
       <form onSubmit={handleSubmit}>
         <FormGroup label="Title" labelFor="title-input" labelInfo="(required)">
           <InputGroup 
             id="title-input" 
+            large // Larger input field
             placeholder="What needs to be done?" 
             value={title} 
             onChange={(e) => setTitle(e.target.value)} 
@@ -52,21 +48,24 @@ export const TaskForm: React.FC = () => {
         <FormGroup label="Description" labelFor="description-input">
           <TextArea 
             fill={true} 
+            large // Larger text area
             id="description-input" 
             placeholder="Add some details..." 
             value={description} 
             onChange={(e) => setDescription(e.target.value)} 
-            style={{ minHeight: '80px' }}
+            style={{ minHeight: '120px', resize: 'vertical' }}
           />
         </FormGroup>
 
         <Button 
           intent="primary" 
-          text="Add Task" 
+          text="ADD TASK" 
           icon="add"
           type="submit"
           loading={mutation.isPending}
           fill
+          large // Much bigger and noticeable button
+          style={{ fontWeight: 'bold', letterSpacing: '1px' }}
         />
       </form>
     </Card>
