@@ -38,7 +38,14 @@ i18n
           "deleteAction": "This action is permanent.",
           "deleteTask": "Delete Task",
           "noDescription": "No description",
-          "noDetails": "No additional details provided for this task."
+          "noDetails": "No additional details provided for this task.",
+          // NEW KEYS  
+          "sortNewest": "Newest first",
+          "sortOldest": "Oldest first",
+          "page": "Page",
+          "of": "of",
+          "prev": "Prev",
+          "next": "Next"
         }
       },
       es: {
@@ -72,7 +79,14 @@ i18n
           "deleteAction": "Esta acción es permanente.",
           "deleteTask": "Eliminar Tarea",
           "noDescription": "Sin descripción",
-          "noDetails": "No se proporcionaron detalles adicionales para esta tarea."
+          "noDetails": "No se proporcionaron detalles adicionales para esta tarea.",
+          // NUEVAS CLAVES
+          "sortNewest": "Más recientes",
+          "sortOldest": "Más antiguas",
+          "page": "Página",
+          "of": "de",
+          "prev": "Ant",
+          "next": "Sig"
         }
       }
     },

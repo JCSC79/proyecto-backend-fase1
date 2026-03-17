@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Card, Elevation, H5, Text, Button, ButtonGroup, 
   Alert, Intent, Dialog, Classes, FormGroup, InputGroup, TextArea,
-  Tag
+  Tag, Icon // <--- Added Icon import
 } from "@blueprintjs/core";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../api/axiosInstance';
@@ -11,11 +11,11 @@ import { useTranslation } from 'react-i18next';
 
 /**
  * TaskItem Component
- * Updated to handle dynamic backgrounds based on Dark Mode.
+ * Updated to display the creation date discreetly.
  */
 interface TaskItemProps {
   task: Task;
-  isDark: boolean; // Prop to detect theme
+  isDark: boolean;
 }
 
 export const TaskItem: React.FC<TaskItemProps> = ({ task, isDark }) => {
@@ -71,7 +71,6 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, isDark }) => {
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: '10px',
-          /* Dynamic background: Blueprint dark card gray or white */
           backgroundColor: isDark ? '#30404d' : '#ffffff',
           transition: 'background-color 0.3s ease'
         }}
@@ -87,9 +86,18 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, isDark }) => {
           }}>
             {task.title}
           </H5>
-          <Text ellipsize style={{ color: isDark ? '#a7b6c2' : '#5c7080', fontSize: '12px' }}>
+          
+          <Text ellipsize style={{ color: isDark ? '#a7b6c2' : '#5c7080', fontSize: '12px', marginBottom: '4px' }}>
             {task.description || t('noDescription')}
           </Text>
+
+          {/* NEW: Creation Date Display */}
+          {task.createdAt && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: isDark ? '#8a9ba8' : '#738694', fontSize: '10px' }}>
+              <Icon icon="calendar" size={10} />
+              <span>{new Date(task.createdAt).toLocaleDateString()}</span>
+            </div>
+          )}
         </div>
 
         <ButtonGroup minimal style={{ flexShrink: 0 }}>
@@ -105,13 +113,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, isDark }) => {
       </Card>
 
       {/* Details Dialog */}
-      <Dialog 
-        className={isDark ? "bp4-dark" : ""}
-        icon="info-sign" 
-        onClose={() => setIsDetailsOpen(false)} 
-        title={t('taskDetails')} 
-        isOpen={isDetailsOpen}
-      >
+      <Dialog className={isDark ? "bp4-dark" : ""} icon="info-sign" onClose={() => setIsDetailsOpen(false)} title={t('taskDetails')} isOpen={isDetailsOpen}>
         <div className={Classes.DIALOG_BODY}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <H5 style={{ margin: 0 }}>{task.title}</H5>
@@ -119,18 +121,17 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, isDark }) => {
               {getTranslatedStatus(task.status)}
             </Tag>
           </div>
-          <div style={{ 
-            padding: '20px', 
-            backgroundColor: isDark ? '#293742' : '#f5f8fa', 
-            borderRadius: '8px', 
-            border: isDark ? '1px solid #394b59' : '1px solid #dbe3e8', 
-            whiteSpace: 'pre-wrap', 
-            minHeight: '100px' 
-          }}>
+          <div style={{ padding: '20px', backgroundColor: isDark ? '#293742' : '#f5f8fa', borderRadius: '8px', border: isDark ? '1px solid #394b59' : '1px solid #dbe3e8', whiteSpace: 'pre-wrap', minHeight: '100px' }}>
             <Text style={{ fontSize: '14px', lineHeight: '1.5', color: isDark ? '#f5f8fa' : 'inherit' }}>
               {task.description || t('noDetails')}
             </Text>
           </div>
+          {/* Also show date in the details modal */}
+          {task.createdAt && (
+            <div style={{ marginTop: '15px', color: isDark ? '#8a9ba8' : '#738694', fontSize: '12px', fontStyle: 'italic' }}>
+              Created on: {new Date(task.createdAt).toLocaleString()}
+            </div>
+          )}
         </div>
         <div className={Classes.DIALOG_FOOTER}>
           <div className={Classes.DIALOG_FOOTER_ACTIONS}>
@@ -143,13 +144,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, isDark }) => {
       </Dialog>
 
       {/* Edit Dialog */}
-      <Dialog 
-        className={isDark ? "bp4-dark" : ""}
-        icon="edit" 
-        onClose={() => setIsEditOpen(false)} 
-        title={t('editTask')} 
-        isOpen={isEditOpen}
-      >
+      <Dialog className={isDark ? "bp4-dark" : ""} icon="edit" onClose={() => setIsEditOpen(false)} title={t('editTask')} isOpen={isEditOpen}>
         <div className={Classes.DIALOG_BODY}>
           <FormGroup label={t('title')} labelInfo={`(${t('required')})`}>
             <InputGroup value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
@@ -169,16 +164,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, isDark }) => {
       </Dialog>
 
       {/* Delete Alert */}
-      <Alert 
-        className={isDark ? "bp4-dark" : ""}
-        isOpen={isAlertOpen} 
-        icon="trash" 
-        intent={Intent.DANGER} 
-        confirmButtonText={t('deleteTask')} 
-        cancelButtonText={t('cancel')} 
-        onCancel={() => setIsAlertOpen(false)} 
-        onConfirm={() => deleteMutation.mutate()}
-      >
+      <Alert className={isDark ? "bp4-dark" : ""} isOpen={isAlertOpen} icon="trash" intent={Intent.DANGER} confirmButtonText={t('deleteTask')} cancelButtonText={t('cancel')} onCancel={() => setIsAlertOpen(false)} onConfirm={() => deleteMutation.mutate()}>
         <p>{t('deleteWarning')} <b>{task.title}</b>? {t('deleteAction')}</p>
       </Alert>
     </>
