@@ -7,16 +7,19 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../api/axiosInstance';
 import type { Task, TaskStatus } from '../../types/task';
-import { useTranslation } from 'react-i18next'; // <--- Import i18n hook
+import { useTranslation } from 'react-i18next';
 
 /**
  * TaskItem Component
- * Handles task display, lifecycle transitions, editing, and detailed read-only view.
- * The ID is hidden and 'uppercase' prop error is fixed with CSS.
- * Updated with i18n support.
+ * Updated to handle dynamic backgrounds based on Dark Mode.
  */
-export const TaskItem: React.FC<{ task: Task }> = ({ task }) => {
-  const { t } = useTranslation(); // <--- Initialize translation
+interface TaskItemProps {
+  task: Task;
+  isDark: boolean; // Prop to detect theme
+}
+
+export const TaskItem: React.FC<TaskItemProps> = ({ task, isDark }) => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   
   const [isAlertOpen, setIsAlertOpen] = useState(false);
@@ -48,7 +51,6 @@ export const TaskItem: React.FC<{ task: Task }> = ({ task }) => {
   const nextStatus: TaskStatus | null = isPending ? 'IN_PROGRESS' : isInProgress ? 'COMPLETED' : null;
   const prevStatus: TaskStatus | null = isCompleted ? 'IN_PROGRESS' : isInProgress ? 'PENDING' : null;
 
-  // Helper to get the correct translated status key
   const getTranslatedStatus = (status: TaskStatus) => {
     if (status === 'IN_PROGRESS') return t('inProgress');
     if (status === 'PENDING') return t('pending');
@@ -68,7 +70,10 @@ export const TaskItem: React.FC<{ task: Task }> = ({ task }) => {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '10px'
+          gap: '10px',
+          /* Dynamic background: Blueprint dark card gray or white */
+          backgroundColor: isDark ? '#30404d' : '#ffffff',
+          transition: 'background-color 0.3s ease'
         }}
       >
         <div onClick={() => setIsDetailsOpen(true)} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
@@ -77,12 +82,13 @@ export const TaskItem: React.FC<{ task: Task }> = ({ task }) => {
             textDecoration: isCompleted ? 'line-through' : 'none',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
-            textOverflow: 'ellipsis'
+            textOverflow: 'ellipsis',
+            color: isDark ? '#ffffff' : 'inherit'
           }}>
             {task.title}
           </H5>
-          <Text ellipsize style={{ color: '#5c7080', fontSize: '12px' }}>
-            {task.description || t('noDescription')} {/* <--- Translated fallback */}
+          <Text ellipsize style={{ color: isDark ? '#a7b6c2' : '#5c7080', fontSize: '12px' }}>
+            {task.description || t('noDescription')}
           </Text>
         </div>
 
@@ -98,17 +104,31 @@ export const TaskItem: React.FC<{ task: Task }> = ({ task }) => {
         </ButtonGroup>
       </Card>
 
-      <Dialog icon="info-sign" onClose={() => setIsDetailsOpen(false)} title={t('taskDetails')} isOpen={isDetailsOpen}>
+      {/* Details Dialog */}
+      <Dialog 
+        className={isDark ? "bp4-dark" : ""}
+        icon="info-sign" 
+        onClose={() => setIsDetailsOpen(false)} 
+        title={t('taskDetails')} 
+        isOpen={isDetailsOpen}
+      >
         <div className={Classes.DIALOG_BODY}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <H5 style={{ margin: 0 }}>{task.title}</H5>
             <Tag intent={statusIntent} large round style={{ textTransform: 'uppercase' }}>
-              {getTranslatedStatus(task.status)} {/* <--- Translated status tag */}
+              {getTranslatedStatus(task.status)}
             </Tag>
           </div>
-          <div style={{ padding: '20px', backgroundColor: '#f5f8fa', borderRadius: '8px', border: '1px solid #dbe3e8', whiteSpace: 'pre-wrap', minHeight: '100px' }}>
-            <Text style={{ fontSize: '14px', lineHeight: '1.5' }}>
-              {task.description || t('noDetails')} {/* <--- Translated fallback */}
+          <div style={{ 
+            padding: '20px', 
+            backgroundColor: isDark ? '#293742' : '#f5f8fa', 
+            borderRadius: '8px', 
+            border: isDark ? '1px solid #394b59' : '1px solid #dbe3e8', 
+            whiteSpace: 'pre-wrap', 
+            minHeight: '100px' 
+          }}>
+            <Text style={{ fontSize: '14px', lineHeight: '1.5', color: isDark ? '#f5f8fa' : 'inherit' }}>
+              {task.description || t('noDetails')}
             </Text>
           </div>
         </div>
@@ -122,7 +142,14 @@ export const TaskItem: React.FC<{ task: Task }> = ({ task }) => {
         </div>
       </Dialog>
 
-      <Dialog icon="edit" onClose={() => setIsEditOpen(false)} title={t('editTask')} isOpen={isEditOpen}>
+      {/* Edit Dialog */}
+      <Dialog 
+        className={isDark ? "bp4-dark" : ""}
+        icon="edit" 
+        onClose={() => setIsEditOpen(false)} 
+        title={t('editTask')} 
+        isOpen={isEditOpen}
+      >
         <div className={Classes.DIALOG_BODY}>
           <FormGroup label={t('title')} labelInfo={`(${t('required')})`}>
             <InputGroup value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
@@ -141,7 +168,9 @@ export const TaskItem: React.FC<{ task: Task }> = ({ task }) => {
         </div>
       </Dialog>
 
+      {/* Delete Alert */}
       <Alert 
+        className={isDark ? "bp4-dark" : ""}
         isOpen={isAlertOpen} 
         icon="trash" 
         intent={Intent.DANGER} 

@@ -1,24 +1,22 @@
 import React from 'react';
 import { TaskItem } from './TaskItem';
 import type { Task, TaskStatus } from '../../types/task';
-import { useTranslation } from 'react-i18next'; // <--- Import i18n hook
+import { useTranslation } from 'react-i18next';
 
 interface TaskBoardProps {
   tasks: Task[];
   statusFilter: TaskStatus | 'ALL';
+  isDark: boolean; // Prop for Dark Mode
 }
 
 /**
  * TaskBoard Component
  * Handles the rendering of the Kanban columns and distributes tasks.
- * Extracted from App.tsx for better modularity.
+ * Updated to pass isDark prop to children TaskItems.
  */
-export const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, statusFilter }) => {
+export const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, statusFilter, isDark }) => {
   const { t } = useTranslation();
 
-  /**
-   * Helper function to render a single Kanban column
-   */
   const renderColumn = (labelKey: string, status: TaskStatus) => {
     const columnTasks = tasks.filter(task => task.status === status);
     
@@ -26,27 +24,29 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, statusFilter }) => 
       <div style={{ 
         flex: 1, 
         minWidth: '300px', 
-        backgroundColor: '#ebf1f5', 
+        backgroundColor: isDark ? '#293742' : '#ebf1f5', 
         padding: '15px', 
         borderRadius: '8px',
-        minHeight: '400px'
+        minHeight: '400px',
+        transition: 'background-color 0.3s ease'
       }}>
         <h3 style={{ 
           borderBottom: '2px solid #5c7080', 
           paddingBottom: '10px', 
           marginBottom: '15px',
-          color: '#182026',
+          color: isDark ? '#f5f8fa' : '#182026',
           display: 'flex',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
+          transition: 'color 0.3s ease'
         }}>
-          {/* Dynamically translated column title */}
           {t(labelKey)} 
           <span style={{ fontSize: '0.8em', color: '#5c7080' }}>({columnTasks.length})</span>
         </h3>
         
         <div>
           {columnTasks.map((task) => (
-            <TaskItem key={task.id} task={task} />
+            /* We pass the isDark prop to each item */
+            <TaskItem key={task.id} task={task} isDark={isDark} />
           ))}
           {columnTasks.length === 0 && (
             <div style={{ textAlign: 'center', color: '#a7b6c2', marginTop: '20px', fontStyle: 'italic' }}>
