@@ -1,30 +1,42 @@
+const crypto = require('crypto'); // Built-in node module for safe UUIDs
+
 /**
- * SEED: Fill the tasks table with initial data
- * @param { import("knex").Knex } knex
+ * SHIELDED SEED: Stress Testing Engine.
+ * Adjust the TOTAL_TASKS variable to test board limits (Pagination & Dashboard).
  */
 exports.seed = async function(knex) {
-  // 1. Deletes ALL existing entries to start clean
+  // --- CONFIGURATION ---
+  const TOTAL_TASKS = 500; // <--- CHANGE ONLY THIS NUMBER FOR STRESS TESTING!
+  // ---------------------
+
+  // 1. Clean existing data to ensure a fresh test environment
   await knex('tasks').del();
   
-  // 2. Inserts seed entries with valid UUIDs
-  await knex('tasks').insert([
-    { 
-      id: '550e8400-e29b-41d4-a716-446655440000', 
-      title: 'Setup Database', 
-      description: 'Configure PostgreSQL with Docker', 
-      status: 'COMPLETED' 
-    },
-    { 
-      id: '550e8400-e29b-41d4-a716-446655440001', 
-      title: 'Create Migrations', 
-      description: 'Define the tasks table schema', 
-      status: 'COMPLETED' 
-    },
-    { 
-      id: '550e8400-e29b-41d4-a716-446655440002', 
-      title: 'Verify Security', 
-      description: 'Check SQL Injection prevention (OWASP)', 
-      status: 'IN_PROGRESS' 
-    }
-  ]);
+  const tasks = [];
+  const statuses = ['PENDING', 'IN_PROGRESS', 'COMPLETED'];
+  
+  console.log(`[!] Generating ${TOTAL_TASKS} tasks for stress testing...`);
+
+  // 2. Dynamic task generator
+  for (let i = 1; i <= TOTAL_TASKS; i++) {
+    const status = statuses[i % 3]; // Balanced distribution across columns
+    const date = new Date();
+    // Spreads creation dates over the last 15 days for a realistic Line Chart
+    date.setDate(date.getDate() - (i % 15)); 
+
+    tasks.push({
+      id: crypto.randomUUID(), // SHIELDED: Always unique, no DB collisions
+      title: `Task #${i}: ${i % 2 === 0 ? 'System Optimization' : 'UI Refinement'}`,
+      description: `Stress test iteration ${i}. Validating Phase 3 stability and TanStack Query performance.`,
+      status: status,
+      createdAt: date,
+      // For COMPLETED tasks, add updatedAt to trigger Dashboard KPIs
+      updatedAt: status === 'COMPLETED' ? new Date() : null
+    });
+  }
+
+  // 3. Batch insert for high performance
+  await knex('tasks').insert(tasks);
+  
+  console.log(`[+] Success! ${TOTAL_TASKS} tasks "planted" in PostgreSQL.`);
 };

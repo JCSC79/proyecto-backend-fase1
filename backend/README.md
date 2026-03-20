@@ -1,117 +1,52 @@
-# Task Manager Backend - Phase 2
+# Task Manager Backend
 
-This project has evolved into a **Distributed Architecture**, focusing on **Separation of Concerns (SoC)**, **SOLID principles**, and **Asynchronous Messaging**. It is a REST API built with **Node.js (v24)**, **Express**, and **RabbitMQ**, using **TypeScript** in strict mode.
+This project is a high-performance **Distributed API** focused on **Separation of Concerns (SoC)**, **SOLID principles**, and **Asynchronous Messaging**. Built with **Node.js (v24)**, **Express**, and **RabbitMQ** using a strict **Zero-Any TypeScript** policy.
+
+## New in Phase 3: Mass Operations & Stress Testing
+
+- **Bulk Clear Board:** New `DELETE /tasks` endpoint for instant system-wide cleanup.
+- **Enhanced Validation:** Strict **Yup** schemas for task creation and multi-field updates (Title, Description, Status).
+- **Stress Testing Engine:** Integrated seeder capable of planting **500+ tasks** with unique UUIDs and realistic timeframes to validate UI stability.
+- **Automated CLI:** Simplified database management via new `npm run` shortcuts in `package.json`.
 
 ## Architecture Overview
 
-The project follows a modular and decoupled structure:
-
-- **Controller Layer (`src/controllers/`):** Handles HTTP requests and standardized API responses.
-- **Service Layer (`src/services/`):** Orchestrates business logic and triggers asynchronous events.
-- **Messaging Service (`src/services/messaging.service.ts`):** Encapsulates RabbitMQ producer logic using type-safe narrowing.
-- **DAO Layer (`src/daos/`):** Encapsulates data persistence using Knex.js.
-- **Worker (`src/worker.ts`):** An independent consumer process that processes task notifications from the message broker.
-- **Functional Error Handling (`src/utils/result.ts`):** Implements the Result Pattern to encapsulate operation outcomes, ensuring predictable and type-safe error management across the Service and Controller layers.
-
-## Design Patterns
-
-- **Result Pattern:** Used to replace traditional exception-based error handling. It forces the developer to check for success/failure explicitly, leading to more robust code.
-- **Singleton:** Services and DAOs are exported as singletons to maintain a single point of truth and efficient resource usage.
+- **Controller Layer (`src/controllers/`):** Standardized API responses using the **Result Pattern**.
+- **Service Layer (`src/services/`):** Orchestrates business logic and triggers RabbitMQ events.
+- **Messaging Service (`src/services/messaging.service.ts`):** Encapsulates RabbitMQ producer logic.
+- **DAO Layer (`src/daos/`):** Abstraction for PostgreSQL persistence via Knex.js.
+- **Worker (`src/worker.ts`):** Independent consumer for processing asynchronous task notifications.
 
 ## API Capabilities (CRUD)
 
-- **GET `/tasks`**: Retrieve all tasks.
-- **GET `/tasks/:id`**: Retrieve a specific task by UUID.
-- **POST `/tasks`**: Create a new task (auto-initialized as `PENDING`).
-- **PATCH `/tasks/:id`**: Partially update a task (supports title, description, and status changes).
-- **DELETE `/tasks/:id`**: Remove a task from the system.
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **GET** | `/tasks` | Retrieve all tasks. |
+| **POST** | `/tasks` | Create task with strict Title/Desc validation. |
+| **DELETE** | `/tasks` | **(New)** Clear the entire board. |
+| **PATCH** | `/tasks/:id` | Update title, description, or status. |
+| **DELETE** | `/tasks/:id` | Remove a specific task. |
 
-## Tech Stack
+## Database & Infrastructure
 
-- **Runtime:** Node.js v24.14.0+ (ESM Mode)
-- **Language:** [TypeScript](https://www.typescriptlang.org/) (Strict Mode - Zero any policy)
-- **Framework:** [Express.js](https://expressjs.com/)
-- **Messaging:** [RabbitMQ](https://www.rabbitmq.com/) (Message Broker)
-- **Database:** PostgreSQL 15+ (Running on Docker)
-- **Query Builder:** Knex.js (with Migration support)
-- **Containerization:** Docker & Docker Compose (Base image: `node:24-alpine3.23`)- **Documentation:** [Swagger UI](https://swagger.io/tools/swagger-ui/) & [OpenAPI 3.0](https://www.openapis.org/)
+- **Stack:** PostgreSQL 15+ & RabbitMQ (via Docker).
+- **Security:** Parameterized queries (OWASP Option 1) to prevent SQL Injection.
+- **Automation Scripts:**
+  - `npm run db:migrate`: Setup/Update database schema.
+  - `npm run db:seed`: **(New)** Plant massive test data (500 tasks) for dashboard validation.
+  - `npm run db:rollback`: Revert last database changes.
 
-## Asynchronous Communication (RabbitMQ)
+## Interactive Documentation (Swagger)
 
-The system implements a **Producer-Consumer pattern**:
-
-- When a task is created, the API (Producer) sends a persistent message to the `task_notifications` queue.
-- An independent Worker (Consumer) listens to the queue and processes the data without blocking the main API flow.
-- **Reliability:** Uses Manual Acknowledgments (ACK) and Durable Queues to ensure zero message loss.
-
-## Persistence & Security (OWASP Focus)
-
-The system is fully persistent, following **OWASP Defense Option 1**:
-
-- **Parameterized Queries:** All database interactions use Knex's built-in methods to prevent SQL Injection.
-- **Infrastructure as Code:** Database and Broker lifecycle are managed via Docker.
-
-### Database Commands
-
-- **Run Migrations:** `npx knex migrate:latest --knexfile knexfile.cjs`
-- **Rollback:** `npx knex migrate:rollback --knexfile knexfile.cjs`
-- **Seed Data:** `npx knex seed:run --knexfile knexfile.cjs`
-
-## Installation & Usage
-
-1. **Spin up Infrastructure (Database & Broker):**
-   ```docker compose up -d```
-2. **Install dependencies:**
-   ```npm install```
-3. **Run migrations:**
-   ```npx knex migrate:latest --knexfile knexfile.cjs```
-
-## Interactive API Documentation (Swagger)
-
-The project includes a fully interactive documentation interface built with **Swagger UI** and **OpenAPI 3.0**. This allows for real-time testing of all endpoints without external tools like Postman.
-
-- **Access URL:** [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
-- **Features:**
-  - Visual CRUD explorer.
-  - Standardized Request/Response schemas (`Task`, `ErrorResponse`).
-  - Integrated testing client ("Try it out" feature).
-  - Detailed error state modeling based on the **Result Pattern**.
+The API includes an interactive **OpenAPI 3.0** explorer available at:
+[http://localhost:3000/api-docs](http://localhost:3000/api-docs).
 
 ## Running the Application
 
-This project requires running two separate processes to handle the full lifecycle:
-
-1. **Terminal 1 - API Server:**
-   ```npm run dev```
-2. **Terminal 2 - Background Worker:**
-   ```npx tsx src/worker.ts```
-Note: The worker includes a failsafe mechanism to handle malformed messages and provides decorated logs for real-time monitoring.
-
-## Quality Standards
-
-- **Zero Any Policy:** 100% type coverage for robust development.
-- **Narrowing Strategy:** Custom type-narrowing to handle complex library interfaces (amqplib) safely.
-- **Decoupled Logic:** The business logic is isolated from the infrastructure.
-- **Consistent Error Modeling:** All API responses follow a standardized JSON structure derived from the Result object, providing clear feedback for both success and failure states.
-- **Contract-First Documentation:** Standardized API contracts using OpenAPI 3.0 to ensure consistency between Backend and potential Frontend consumers.
-
-## Key Technical Features
-
-- Native TypeScript Support: Leveraging Node 24's latest capabilities for handling TypeScript modules.
-- Zero Any Policy: Strictly typed interfaces and enums to prevent runtime errors.
-- ESM Ready: Fully compatible with ECMAScript Modules ("type": "module").
-
-## Project Structure
-
-- `src/`: Main source code directory.
-- `src/controllers/`: Request handling and HTTP response management (TaskController).
-- `src/services/`: Core business logic and service orchestration (TaskService).
-- `src/daos/`: Data Access Objects for persistence abstraction (TaskDAO).
-- `src/models/`: Data contracts, interfaces, and enums (ITask, TaskStatus).
-- `src/config/`: Configuration files for external libraries (Swagger, etc.).
-- `eslint.config.js`: Linter configuration for high code quality.
-- `tsconfig.json`: TypeScript compiler and strict mode settings.
-- `Dockerfile`: Containerization and deployment definition.
+1. **Infrastructure:** `docker compose up -d`.
+2. **Setup:** `npm install` && `npm run db:migrate`.
+3. **API Server:** `npm run dev`.
+4. **Worker:** `npx tsx src/worker.ts`.
 
 ---
-*Developed as part of the Backend Intensive Training - 2026.*
+*Developed as part of the Backend Intensive Training (2026).*

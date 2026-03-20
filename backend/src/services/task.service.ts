@@ -6,31 +6,19 @@ import { Result } from '../utils/result.ts';
 
 /**
  * Orchestrates business logic and coordinates data access using the Result Pattern.
- * Ensures all operations return a standardized outcome to avoid exception-based flow control.
  */
 export class TaskService {
-    /**
-     * Retrieves all tasks from the persistence layer.
-     */
     async getAllTasks(): Promise<Result<ITask[]>> {
         const tasks = await taskDAO.getAll();
         return Result.ok(tasks);
     }
 
-    /**
-     * Finds a specific task by its unique identifier.
-     */
     async getTaskById(id: string): Promise<Result<ITask>> {
         const task = await taskDAO.getById(id);
-        if (!task) {
-            return Result.fail<ITask>("Task not found");
-        }
+        if (!task) return Result.fail<ITask>("Task not found");
         return Result.ok(task);
     }
 
-    /**
-     * Logic for generating new tasks.
-     */
     async createTask(title: string, description: string): Promise<Result<ITask>> {
         const newTask: ITask = {
             id: crypto.randomUUID(),
@@ -39,46 +27,37 @@ export class TaskService {
             status: TaskStatus.PENDING,
             createdAt: new Date()
         };
-
         const createdTask = await taskDAO.create(newTask);
-
         try {
             await messagingService.sendTaskNotification(createdTask);
         } catch (error) {
             console.error("[TaskService] Messaging notification failed:", error);
         }
-
         return Result.ok(createdTask);
     }
 
-    /**
-     * Removes a task from the system.
-     */
     async deleteTask(id: string): Promise<Result<boolean>> {
         const success = await taskDAO.delete(id);
-        if (!success) {
-            return Result.fail<boolean>("Task not found or could not be deleted");
-        }
+        if (!success) return Result.fail<boolean>("Task not found");
         return Result.ok(true);
     }
 
     /**
-     * Delegates partial update operations to the storage layer.
-     * UPDATED: Automatically injects the updatedAt timestamp for KPI calculations.
+     * NEW: Business logic to clear all tasks from the persistence layer.
+     * Part of Phase 1: Support for mass deletion requests.
      */
+    async deleteAllTasks(): Promise<Result<boolean>> {
+        await taskDAO.deleteAll();
+        return Result.ok(true);
+    }
+
     async updateTask(id: string, updates: Partial<ITask>): Promise<Result<ITask>> {
-        // We force the updatedAt field to the current server time on every update
         const updatesWithTimestamp = {
             ...updates,
             updatedAt: new Date()
         };
-
         const updatedTask = await taskDAO.update(id, updatesWithTimestamp);
-        
-        if (!updatedTask) {
-            return Result.fail<ITask>("Task not found or update failed");
-        }
-        
+        if (!updatedTask) return Result.fail<ITask>("Task not found or update failed");
         return Result.ok(updatedTask);
     }
 }

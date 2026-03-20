@@ -1,5 +1,10 @@
 import swaggerJSDoc from 'swagger-jsdoc';
 
+/**
+ * Swagger Configuration
+ * Carefully updated to include Phase 3 bulk operations and extended update fields.
+ * Validated against OpenAPI 3.0.0 standards.
+ */
 const options: swaggerJSDoc.Options = {
   definition: {
     openapi: '3.0.0',
@@ -19,7 +24,7 @@ const options: swaggerJSDoc.Options = {
             description: { type: 'string' },
             status: { type: 'string', enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED'] },
             createdAt: { type: 'string', format: 'date-time' },
-            updatedAt: { type: 'string', format: 'date-time' } // Added property
+            updatedAt: { type: 'string', format: 'date-time' }
           }
         },
         ErrorResponse: {
@@ -45,11 +50,31 @@ const options: swaggerJSDoc.Options = {
           tags: ['Tasks'],
           requestBody: {
             required: true,
-            content: { 'application/json': { schema: { type: 'object', properties: { title: { type: 'string' }, description: { type: 'string' } } } } }
+            content: { 
+              'application/json': { 
+                schema: { 
+                  type: 'object', 
+                  required: ['title', 'description'], // Reflects strict requirements
+                  properties: { 
+                    title: { type: 'string' }, 
+                    description: { type: 'string' } 
+                  } 
+                } 
+              } 
+            }
           },
           responses: {
             201: { description: 'Created', content: { 'application/json': { schema: { $ref: '#/components/schemas/Task' } } } },
             400: { description: 'Validation Error', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+          }
+        },
+        // NEW: Mass deletion endpoint documentation
+        delete: {
+          summary: 'Delete all tasks (Clear Board)',
+          tags: ['Tasks'],
+          responses: {
+            204: { description: 'All tasks successfully deleted' },
+            500: { description: 'Internal Server Error' }
           }
         }
       },
@@ -64,22 +89,36 @@ const options: swaggerJSDoc.Options = {
           }
         },
         patch: {
-          summary: 'Update task status',
+          summary: 'Update task details or status', // Updated summary
           tags: ['Tasks'],
           parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
           requestBody: {
-            content: { 'application/json': { schema: { type: 'object', properties: { status: { type: 'string', enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED'] } } } } }
+            content: { 
+              'application/json': { 
+                schema: { 
+                  type: 'object', 
+                  properties: { 
+                    title: { type: 'string' },
+                    description: { type: 'string' },
+                    status: { type: 'string', enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED'] } 
+                  } 
+                } 
+              } 
+            }
           },
           responses: {
-            200: { description: 'Updated', content: { 'application/json': { schema: { $ref: '#/components/schemas/Task' } } } },
-            404: { description: 'Not found' }
+            200: { description: 'Updated successfully', content: { 'application/json': { schema: { $ref: '#/components/schemas/Task' } } } },
+            404: { description: 'Task not found' }
           }
         },
         delete: {
-          summary: 'Delete a task',
+          summary: 'Delete a specific task',
           tags: ['Tasks'],
           parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-          responses: { 204: { description: 'Deleted' }, 404: { description: 'Not found' } }
+          responses: { 
+            204: { description: 'Deleted' }, 
+            404: { description: 'Not found' } 
+          }
         }
       }
     }

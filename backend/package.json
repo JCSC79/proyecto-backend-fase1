@@ -7,7 +7,10 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "db:seed": "knex seed:run --knexfile knexfile.cjs",
+    "db:migrate": "knex migrate:latest --knexfile knexfile.cjs",
+    "db:rollback": "knex migrate:rollback --knexfile knexfile.cjs"
   },
   "keywords": [],
   "author": "",
