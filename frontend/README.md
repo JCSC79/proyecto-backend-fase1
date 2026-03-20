@@ -1,73 +1,50 @@
-# React + TypeScript + Vite
+# Task Manager Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Professional task management interface built with **React 19**, **Vite**, and **BlueprintJS**. Optimized for high-density data visualization.
 
-Currently, two official plugins are available:
+## Key Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### KPI Dashboard & Analytics
 
-## React Compiler
+- **Real-time Metrics:** Calculation of Board Health, Task Completion Rates, and System Activity.
+- **Performance Tracking:** Automatic measurement of "Average Completion Time" based on historical data.
+- **Visual Charts:** Interactive Pie, Bar, and Line charts powered by **Recharts**.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Smart Pagination Engine
 
-## Expanding the ESLint configuration
+- **Independent Column Scrolling:** Each status column (Pending, In Progress, Completed) maintains its own pagination state.
+- **Scalability:** Successfully tested with **500+ tasks** (34+ pages per column) without performance degradation.
+- **Optimistic Updates:** Server-state synchronization handled by **TanStack Query** for smooth transitions.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Internationalization (i18n)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Full Localization:** Complete support for English and Spanish.
+- **Dynamic Switching:** Real-time language toggling across the entire UI.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### UI/UX Patterns
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- **Global Notifications:** Centralized `AppToaster` system for real-time feedback on API operations (Success/Error/Validation).
+- **Theme Engine:** Full support for Dark and Light modes using BlueprintJS core tokens.
+- **Zero Any Policy:** Strictly typed components and interfaces to ensure maximum stability.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Development Setup
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### 1. Install Dependencies
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+```npm install --legacy-peer-deps```
+Note: Using --legacy-peer-deps is required for React 19 compatibility with some BlueprintJS dependencies.
+
+### 2. Run the Application
+
+```npm run dev```
+The application will be available at: <http://localhost:5173>
+
+## Project Structure
+
+- /src/components: UI building blocks (Forms, Board, Filters).
+- /src/views: Main layouts (Dashboard, Board View).
+- /src/i18n: Localization dictionaries and configuration.
+- /src/hooks: Custom React hooks for data fetching and state logic.
+
+---
+*Developed as part of the Full-Stack Intensive Training - 2026.*

@@ -72,6 +72,7 @@ i18n
           "clearBoard": "Clear Board",
           "boardCleared": "All tasks have been removed",
           "clearBoardWarning": "Are you sure you want to clear the entire board? All tasks will be permanently deleted.",
+          "requiredFieldsError": "Title and Description are required",
         }
       },
       es: {
@@ -134,10 +135,12 @@ i18n
           "errorLoadingTasks": "Error al sincronizar tareas",
           "retry": "Reintentar",
           "taskCreated": "¡Tarea creada con éxito!",
-          "taskUpdated": "¡Tarea actualizada con éxito!","taskDeleted": "Tarea eliminada",
+          "taskUpdated": "¡Tarea actualizada con éxito!",
+          "taskDeleted": "Tarea eliminada",
           "clearBoard": "Limpiar Tablero",
           "boardCleared": "Se han eliminado todas las tareas",
           "clearBoardWarning": "¿Estás seguro de que deseas limpiar todo el tablero? Todas las tareas se borrarán permanentemente.",
+          "requiredFieldsError": "El título y la descripción son obligatorios",
         }
       }
     },

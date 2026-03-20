@@ -6,10 +6,17 @@ import { useTranslation } from "react-i18next";
 import { AppToaster } from "../../utils/toaster";
 
 /**
- * TaskForm Component
- * Updated: Receives isDark prop to dynamically change its background color.
- * Integrated: AppToaster for success feedback on creation.
+ * Interface to define the expected server error structure
+ * Aligned with Phase 1 strict typing guidelines.
  */
+interface ServerError {
+  response?: {
+    data?: {
+      error?: string;
+    };
+  };
+}
+
 interface TaskFormProps {
   isDark: boolean;
 }
@@ -24,7 +31,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({ isDark }) => {
     mutationFn: (newTask: { title: string; description: string }) => api.post("/tasks", newTask),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      // SUCCESS NOTIFICATION: Professional feedback after creation
       AppToaster.show({
         message: t('taskCreated'),
         intent: Intent.SUCCESS,
@@ -32,6 +38,17 @@ export const TaskForm: React.FC<TaskFormProps> = ({ isDark }) => {
       });
       handleClear();
     },
+    // REFINEMENT: Removed 'any' by using the ServerError interface
+    onError: (error: unknown) => {
+      const serverError = error as ServerError;
+      const errorMessage = serverError.response?.data?.error || t('errorMessage');
+      
+      AppToaster.show({
+        message: errorMessage,
+        intent: Intent.DANGER,
+        icon: "warning-sign"
+      });
+    }
   });
 
   const handleClear = () => {
@@ -41,7 +58,17 @@ export const TaskForm: React.FC<TaskFormProps> = ({ isDark }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    
+    // UI Validation: Prevents empty submissions and notifies user visually
+    if (!title.trim() || !description.trim()) {
+      AppToaster.show({
+        message: t('requiredFieldsError'),
+        intent: Intent.WARNING,
+        icon: "info-sign"
+      });
+      return;
+    }
+
     mutation.mutate({ title, description });
   };
 
@@ -60,15 +87,38 @@ export const TaskForm: React.FC<TaskFormProps> = ({ isDark }) => {
       
       <form onSubmit={handleSubmit}>
         <FormGroup label={t('title')} labelFor="title-input" labelInfo={`(${t('required')})`}>
-          <InputGroup id="title-input" large placeholder={t('placeholderTitle')} value={title} onChange={(e) => setTitle(e.target.value)} />
+          <InputGroup 
+            id="title-input" 
+            large 
+            placeholder={t('placeholderTitle')} 
+            value={title} 
+            onChange={(e) => setTitle(e.target.value)} 
+          />
         </FormGroup>
 
-        <FormGroup label={t('description')} labelFor="description-input">
-          <TextArea fill={true} large id="description-input" placeholder={t('placeholderDesc')} value={description} onChange={(e) => setDescription(e.target.value)} style={{ minHeight: '120px', resize: 'vertical' }} />
+        <FormGroup label={t('description')} labelFor="description-input" labelInfo={`(${t('required')})`}>
+          <TextArea 
+            fill={true} 
+            large 
+            id="description-input" 
+            placeholder={t('placeholderDesc')} 
+            value={description} 
+            onChange={(e) => setDescription(e.target.value)} 
+            style={{ minHeight: '120px', resize: 'vertical' }} 
+          />
         </FormGroup>
 
         <div style={{ display: 'flex', gap: '10px' }}>
-          <Button intent="primary" text={t('addTask')} icon="add" type="submit" loading={mutation.isPending} fill large style={{ fontWeight: 'bold', letterSpacing: '1px', flex: 3 }} />
+          <Button 
+            intent="primary" 
+            text={t('addTask')} 
+            icon="add" 
+            type="submit" 
+            loading={mutation.isPending} 
+            fill 
+            large 
+            style={{ fontWeight: 'bold', letterSpacing: '1px', flex: 3 }} 
+          />
           <Button intent="none" text={t('clear')} icon="eraser" onClick={handleClear} large style={{ flex: 1 }} />
         </div>
       </form>
