@@ -39,7 +39,7 @@ app.patch('/tasks/:id', (req, res) => taskController.update(req, res));
  */
 app.listen(PORT, async () => {
     await messagingService.init();
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`Server running at http://localhost:${PORT}/tasks`);
     console.log(`Swagger docs available at http://localhost:${PORT}/api-docs`);
     console.log('Endpoints ready: GET, POST, DELETE, PATCH /tasks');
 });

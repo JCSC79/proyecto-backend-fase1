@@ -31,8 +31,9 @@ class TaskDAO {
             .where({ id })
             .update(updates);
 
-        if (updatedRows === 0) return undefined;
-        
+        if (updatedRows === 0) {
+            return undefined;
+        }
         return await this.getById(id);
     }
 
