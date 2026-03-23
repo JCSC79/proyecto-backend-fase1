@@ -21,5 +21,6 @@ export interface ITask {
     description: string;
     status: TaskStatus;
     createdAt: Date;
-    updatedAt?: Date;
+    updatedAt?: Date | null;
+    userId: string;
 }

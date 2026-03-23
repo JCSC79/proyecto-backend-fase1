@@ -42,16 +42,21 @@ class TaskController {
 
   /**
    * Validates input using Yup schemas and creates a new task.
-   * Feedback is sent back to the frontend for Toaster display.
+   * Phase 4: Now extracts the userId from the authenticated request.
    */
   async create(req: Request, res: Response): Promise<Response | void> {
     try {
-      // Validate with abortEarly: false to capture the specific missing field
+      // 1. Validate input data
       const validatedData = await createTaskSchema.validate(req.body, { abortEarly: false });
       
+      // 2. Extract userId injected by the 'authenticate' middleware
+      const userId = (req as Request & { user: { id: string } }).user.id;
+      
+      // 3. Pass both task data and owner ID to the service
       const result = await taskService.createTask(
         validatedData.title, 
-        validatedData.description
+        validatedData.description || '',
+        userId
       );
       
       if (result.isFailure) {
@@ -61,7 +66,6 @@ class TaskController {
       res.status(201).json(result.getValue());
     } catch (err) {
       const yupError = err as YupError;
-      // Return the exact validation message for the Frontend Toaster
       return res.status(400).json({ error: yupError.message });
     }
   }
@@ -84,7 +88,7 @@ class TaskController {
   }
 
   /**
-   * NEW: Controller action to handle mass deletion request (Clear Board).
+   * Controller action to handle mass deletion request (Clear Board).
    */
   async deleteAll(_req: Request, res: Response): Promise<Response | void> {
     const result = await taskService.deleteAllTasks();

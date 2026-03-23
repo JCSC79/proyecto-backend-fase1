@@ -8,14 +8,9 @@ import { Result } from '../utils/result.ts';
  * Orchestrates business logic and coordinates data access using the Result Pattern.
  */
 export class TaskService {
-    // Explicitly declaring properties to avoid "Parameter Properties" syntax errors in Node v24
     private readonly dao: typeof taskDAO;
     private readonly messaging: typeof messagingService;
     
-    /**
-     * Phase 3: Dependency Injection via constructor.
-     * Standard syntax used to ensure compatibility with Node's native TS support.
-     */
     constructor(
         dao: typeof taskDAO = taskDAO,
         messaging: typeof messagingService = messagingService
@@ -37,8 +32,11 @@ export class TaskService {
         return Result.ok(task);
     }
 
-    async createTask(title: string, description: string): Promise<Result<ITask>> {
-        // Business Rule validation for Phase 3 Testing Evidence
+    /**
+     * Creates a new task and associates it with a specific user.
+     * Phase 4: userId is now mandatory to maintain referential integrity.
+     */
+    async createTask(title: string, description: string, userId: string): Promise<Result<ITask>> {
         if (!title || title.trim() === '') {
             return Result.fail<ITask>("Title is required");
         }
@@ -48,13 +46,13 @@ export class TaskService {
             title,
             description,
             status: TaskStatus.PENDING,
-            createdAt: new Date()
+            createdAt: new Date(),
+            userId // Link task to the authenticated user
         };
 
         const createdTask = await this.dao.create(newTask);
         
         try {
-            // Using the injected messaging service
             await this.messaging.sendTaskNotification(createdTask);
         } catch (error) {
             console.error("[TaskService] Messaging notification failed:", error);
@@ -71,10 +69,6 @@ export class TaskService {
         return Result.ok(true);
     }
 
-    /**
-     * NEW: Business logic to clear all tasks from the persistence layer.
-     * Part of Phase 1: Support for mass deletion requests.
-     */
     async deleteAllTasks(): Promise<Result<boolean>> {
         await this.dao.deleteAll();
         return Result.ok(true);
@@ -93,5 +87,4 @@ export class TaskService {
     }
 }
 
-// Default instance using real infrastructure
 export const taskService = new TaskService();

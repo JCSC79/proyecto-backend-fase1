@@ -3,7 +3,8 @@ import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger.ts';
 import { taskController } from './controllers/task.controller.ts';
-import { authController } from './controllers/auth.controller.ts'; // NEW: Auth Controller
+import { authController } from './controllers/auth.controller.ts';
+import { authenticate } from './middlewares/auth.middleware.ts'; // NEW: Security shield
 import { messagingService } from './services/messaging.service.ts';
 
 const app = express();
@@ -12,6 +13,7 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
+// Request logger middleware
 app.use((req, _res, next) => {
     const time = new Date().toLocaleTimeString();
     console.log(`[${time}] ${req.method} ${req.url}`);
@@ -22,16 +24,17 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 /**
  * AUTHENTICATION ROUTES (Phase 4)
- * Public endpoints for user identity management.
+ * Public endpoints: No token required to create an account or login.
  */
 app.post('/auth/register', (req, res) => authController.register(req, res));
 app.post('/auth/login', (req, res) => authController.login(req, res));
 
 /**
- * TASK ROUTES
- * IMPORTANT: Static routes like DELETE /tasks must be defined BEFORE 
- * parameterized routes like DELETE /tasks/:id to avoid matching conflicts.
+ * TASK ROUTES (Protected)
+ * All routes below this line require a valid JWT token.
  */
+app.use('/tasks', authenticate); // Apply the shield to all /tasks/* routes
+
 app.get('/tasks', (req, res) => taskController.getAll(req, res));
 app.post('/tasks', (req, res) => taskController.create(req, res));
 app.delete('/tasks', (req, res) => taskController.deleteAll(req, res));
@@ -47,5 +50,5 @@ app.listen(PORT, async () => {
     await messagingService.init();
     console.log(`Server running at http://localhost:${PORT}`);
     console.log(`Swagger docs available at http://localhost:${PORT}/api-docs`);
-    console.log('Endpoints ready: AUTH (Register/Login), TASKS (CRUD)');
+    console.log('Endpoints ready: AUTH (Public), TASKS (Protected by JWT)');
 });
