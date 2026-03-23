@@ -73,6 +73,12 @@ i18n
           "boardCleared": "All tasks have been removed",
           "clearBoardWarning": "Are you sure you want to clear the entire board? All tasks will be permanently deleted.",
           "requiredFieldsError": "Title and Description are required",
+          "login": "Login",
+          "email": "Email Address",
+          "password": "Password",
+          "noAccount": "Don't have an account? Register",
+          "authError": "Invalid email or password",
+          "logout": "Logout",
         }
       },
       es: {
@@ -141,6 +147,12 @@ i18n
           "boardCleared": "Se han eliminado todas las tareas",
           "clearBoardWarning": "¿Estás seguro de que deseas limpiar todo el tablero? Todas las tareas se borrarán permanentemente.",
           "requiredFieldsError": "El título y la descripción son obligatorios",
+          "login": "Iniciar Sesión",
+          "email": "Correo Electrónico",
+          "password": "Contraseña",
+          "noAccount": "¿No tienes cuenta? Regístrate",
+          "authError": "Email o contraseña incorrectos",
+          "logout": "Cerrar Sesión",
         }
       }
     },

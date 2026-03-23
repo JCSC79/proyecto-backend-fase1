@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navbar, ProgressBar, Button, Alignment } from "@blueprintjs/core";
+import { Navbar, ProgressBar, Button, Alignment, Tag, Intent } from "@blueprintjs/core";
 import { useTranslation } from 'react-i18next';
 // NEW: Import the custom logo from assets for Vite processing
 import logoImg from '../../assets/logo.png';
@@ -10,7 +10,7 @@ type ViewMode = 'home' | 'dashboard';
 /**
  * Header Component
  * Updated: Manages view switching between Home and Dashboard.
- * Added: Custom branding logo and improved navigation spacing.
+ * Added: Custom branding logo and user identity tag.
  */
 interface HeaderProps {
   progress: number;
@@ -18,9 +18,10 @@ interface HeaderProps {
   toggleDark: () => void;
   activeView: ViewMode;
   setActiveView: (view: ViewMode) => void;
+  userEmail: string; // Added Phase 4
 }
 
-export const Header: React.FC<HeaderProps> = ({ progress, isDark, toggleDark, activeView, setActiveView }) => {
+export const Header: React.FC<HeaderProps> = ({ progress, isDark, toggleDark, activeView, setActiveView, userEmail }) => {
   const { t, i18n } = useTranslation();
   const percentage = Math.round(progress * 100);
 
@@ -56,8 +57,8 @@ export const Header: React.FC<HeaderProps> = ({ progress, isDark, toggleDark, ac
         
         <Navbar.Divider />
         
-        {/* VIEW SWITCHER SECTION: Added margin-right auto to push progress group to the right */}
-        <div style={{ marginLeft: '10px', display: 'flex', gap: '12px', marginRight: 'auto' }}>
+        {/* VIEW SWITCHER SECTION */}
+        <div style={{ marginLeft: '10px', display: 'flex', gap: '12px' }}>
           <Button 
             className="bp4-minimal" 
             icon="home" 
@@ -76,7 +77,22 @@ export const Header: React.FC<HeaderProps> = ({ progress, isDark, toggleDark, ac
           />
         </div>
 
-        {/* PROGRESS SECTION: Now correctly positioned thanks to the previous margin-right: auto */}
+        {/* PHASE 4: USER TAG - Placed before progress with the "auto" margin to keep layout */}
+        <div style={{ marginLeft: '20px', marginRight: 'auto', display: 'flex', alignItems: 'center' }}>
+          {userEmail && (
+            <Tag 
+              minimal 
+              intent={Intent.PRIMARY} 
+              icon="user" 
+              large 
+              style={{ fontWeight: 600 }}
+            >
+              {userEmail.toLowerCase()}
+            </Tag>
+          )}
+        </div>
+
+        {/* PROGRESS SECTION */}
         <div style={{ display: 'flex', alignItems: 'center', marginRight: '25px' }}>
           <span style={{ fontSize: '11px', fontWeight: 600, marginRight: '12px', color: isDark ? '#a7b6c2' : '#5c7080', whiteSpace: 'nowrap' }}>
             {t('progress')}: {percentage}%
