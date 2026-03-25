@@ -89,6 +89,25 @@ i18n
           "noTasksDescription": "Ready to be productive? Create your first task to get started.",
           "noResultsTitle": "No tasks found",
           "noResultsDescription": "Try adjusting your search or filters.",
+          "adminPanel": "Administration Panel",
+          "totalUsers": "Total Users",
+          "systemUptime": "System Uptime",
+          "rabbitMQStatus": "RabbitMQ Status",
+          "connected": "Connected",
+          "userManagement": "User Management",
+          "user": "User",
+          "role": "Role",
+          "actions": "Actions",
+          "admin": "ADMIN",
+          "userRole": "USER",
+          "edit": "Edit",
+          "accessDenied": "Access Denied",
+          "accessDeniedDescription": "You do not have permission to view global metrics.",
+          "globalPurge": "GLOBAL_PURGE",
+          "globalPurgeNotImplemented": "Global purge not yet implemented",
+          "timestamp": "Timestamp",
+          "status": "Status",
+          "success": "Success",
 
         }
       },
@@ -195,7 +214,11 @@ i18n
           "people": "Personas",
           "database": "Base de Datos",
           "pulse": "Pulso",
-          "fork": "Horquilla"        }
+          "fork": "Horquilla",
+          "timestamp": "Marca de tiempo",
+          "status": "Estado",
+          "success": "Éxito"
+        }
       }
     },
     fallbackLng: "en",

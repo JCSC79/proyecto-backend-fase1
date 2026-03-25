@@ -113,7 +113,7 @@ export const Header: React.FC<HeaderProps> = ({
             <Button
               className="bp4-minimal"
               icon="shield"
-              text="Admin"
+              text={t('admin', 'Admin')}
               active={activeView === 'admin'}
               onClick={() => setActiveView('admin')}
               intent={Intent.WARNING}
@@ -134,7 +134,7 @@ export const Header: React.FC<HeaderProps> = ({
               icon={isAdmin ? "crown" : "user"}
               style={{ fontSize: '0.75em', padding: '0 8px' }}
             >
-              {isAdmin ? 'ADMIN' : (userName ? userEmail : t('user'))}
+              {isAdmin ? t('admin', 'ADMIN') : t('userRole', 'USER')}
             </Tag>
           </div>
 
