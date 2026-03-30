@@ -13,13 +13,14 @@ export type TaskStatus = typeof TaskStatus[keyof typeof TaskStatus];
 
 /**
  * Main Task Interface.
- * Added updatedAt to support efficiency metrics in the KPI Dashboard.
+ * Updated to include userId for database relationship integrity.
  */
 export interface ITask {
     id: string;
     title: string;
     description: string;
     status: TaskStatus;
+    userId: string;     // Foreign key reference to User.id
     createdAt: Date;
     updatedAt?: Date;
 }

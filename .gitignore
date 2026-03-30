@@ -1,21 +1,33 @@
-# Dependencias (Ignora node_modules en cualquier carpeta)
+# Dependencies (Ignores node_modules in any folder)
 node_modules/
 
-# Compilación
+# Compilation and builds
 dist/
 build/
+.next/
+out/
 
-# Variables de entorno (¡Crítico!)
+# Environment variables (CRITICAL: Never upload these!)
 .env
 .env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Bases de datos y Logs
+# Database and Logs
 pgdata/
 *.log
+npm-debug.log*
 
 # Docker
 .docker/
 
-# IDEs
+# IDEs and Editors
 .vscode/
 .idea/
+*.swp
+*.swo
+.DS_Store
+
+# Diagnostics (Repomix)
+repomix-output.xml

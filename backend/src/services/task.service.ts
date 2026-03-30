@@ -3,19 +3,16 @@ import type { ITask } from '../models/task.model.ts';
 import { taskDAO } from '../daos/task.dao.ts';
 import { messagingService } from './messaging.service.ts';
 import { Result } from '../utils/result.ts';
+import crypto from 'node:crypto'; // Standard crypto module for Node v24
 
 /**
- * Orchestrates business logic and coordinates data access using the Result Pattern.
+ * TaskService - Handles business logic for task management.
+ * Coordinates between the database (DAO) and notification services.
  */
 export class TaskService {
-    // Explicitly declaring properties to avoid "Parameter Properties" syntax errors in Node v24
     private readonly dao: typeof taskDAO;
     private readonly messaging: typeof messagingService;
     
-    /**
-     * Phase 3: Dependency Injection via constructor.
-     * Standard syntax used to ensure compatibility with Node's native TS support.
-     */
     constructor(
         dao: typeof taskDAO = taskDAO,
         messaging: typeof messagingService = messagingService
@@ -37,24 +34,28 @@ export class TaskService {
         return Result.ok(task);
     }
 
-    async createTask(title: string, description: string): Promise<Result<ITask>> {
-        // Business Rule validation for Phase 3 Testing Evidence
+    /**
+     * Creates a new task assigned to a specific user.
+     * Required by DB foreign key constraints.
+     */
+    async createTask(title: string, description: string, userId: string): Promise<Result<ITask>> {
         if (!title || title.trim() === '') {
             return Result.fail<ITask>("Title is required");
         }
 
+        // Creating the task object with full type safety
         const newTask: ITask = {
             id: crypto.randomUUID(),
             title,
             description,
             status: TaskStatus.PENDING,
+            userId, // Link task to its owner
             createdAt: new Date()
         };
 
         const createdTask = await this.dao.create(newTask);
         
         try {
-            // Using the injected messaging service
             await this.messaging.sendTaskNotification(createdTask);
         } catch (error) {
             console.error("[TaskService] Messaging notification failed:", error);
@@ -71,10 +72,6 @@ export class TaskService {
         return Result.ok(true);
     }
 
-    /**
-     * NEW: Business logic to clear all tasks from the persistence layer.
-     * Part of Phase 1: Support for mass deletion requests.
-     */
     async deleteAllTasks(): Promise<Result<boolean>> {
         await this.dao.deleteAll();
         return Result.ok(true);
@@ -87,11 +84,10 @@ export class TaskService {
         };
         const updatedTask = await this.dao.update(id, updatesWithTimestamp);
         if (!updatedTask) {
-            return Result.fail<ITask>("Task not found or update failed");
+            return Result.fail<ITask>("Task not found");
         }
         return Result.ok(updatedTask);
     }
 }
 
-// Default instance using real infrastructure
 export const taskService = new TaskService();

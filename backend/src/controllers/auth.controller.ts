@@ -25,11 +25,13 @@ class AuthController {
             return res.status(401).json({ error: result.error });
         }
 
-        // For now, we return the user data. 
-        // In the next step, we will generate the JWT Token here.
+        // Successful authentication
+        const { user, token } = result.getValue();
+
         return res.json({
             message: 'Login successful',
-            user: result.getValue()
+            token: token, // JWT Token to be used for authenticated requests
+            user: user
         });
     }
 }

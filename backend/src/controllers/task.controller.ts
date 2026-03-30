@@ -4,31 +4,29 @@ import { createTaskSchema, updateTaskSchema } from '../schemas/task.schema.ts';
 import type { ITask } from '../models/task.model.ts';
 
 /**
- * Interface for Yup validation errors to avoid 'any'.
+ * Custom interface to extend Express Request.
+ * This allows us to access 'req.user' without using 'any'.
  */
+interface AuthRequest extends Request {
+  user?: {
+    id: string;
+    role: string;
+    email: string;
+  };
+}
+
 interface YupError {
   message: string;
 }
 
-/**
- * Handles incoming HTTP requests and orchestrates the service layer.
- * Implements the Result Pattern for consistent error handling.
- */
 class TaskController {
-  /**
-   * Retrieves all tasks from the database.
-   */
   async getAll(_req: Request, res: Response): Promise<void> {
     const result = await taskService.getAllTasks();
     res.json(result.getValue());
   }
 
-  /**
-   * Handles single task retrieval by UUID.
-   */
   async getById(req: Request, res: Response): Promise<Response | void> {
     const { id } = req.params;
-    
     if (typeof id !== 'string') {
       return res.status(400).json({ error: "Invalid ID format" });
     }
@@ -41,17 +39,27 @@ class TaskController {
   }
 
   /**
-   * Validates input using Yup schemas and creates a new task.
-   * Feedback is sent back to the frontend for Toaster display.
+   * Validates input and creates a new task with the owner's ID.
    */
   async create(req: Request, res: Response): Promise<Response | void> {
     try {
-      // Validate with abortEarly: false to capture the specific missing field
       const validatedData = await createTaskSchema.validate(req.body, { abortEarly: false });
       
+      /**
+       * CLEAN TYPING: We cast 'req' to our 'AuthRequest' interface.
+       * This fulfills ESLint rules and ensures 'id' exists.
+       */
+      const authReq = req as AuthRequest;
+      const userId = authReq.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ error: "User identity not found in token" });
+      }
+
       const result = await taskService.createTask(
         validatedData.title, 
-        validatedData.description
+        validatedData.description,
+        userId
       );
       
       if (result.isFailure) {
@@ -61,17 +69,12 @@ class TaskController {
       res.status(201).json(result.getValue());
     } catch (err) {
       const yupError = err as YupError;
-      // Return the exact validation message for the Frontend Toaster
       return res.status(400).json({ error: yupError.message });
     }
   }
 
-  /**
-   * Manages task deletion. 
-   */
   async delete(req: Request, res: Response): Promise<Response | void> {
     const { id } = req.params;
-    
     if (typeof id !== 'string') {
       return res.status(400).json({ error: "Invalid ID format" });
     }
@@ -83,9 +86,6 @@ class TaskController {
     res.status(204).send();
   }
 
-  /**
-   * NEW: Controller action to handle mass deletion request (Clear Board).
-   */
   async deleteAll(_req: Request, res: Response): Promise<Response | void> {
     const result = await taskService.deleteAllTasks();
     if (result.isFailure) {
@@ -94,12 +94,8 @@ class TaskController {
     res.status(204).send();
   }
 
-  /**
-   * Updates an existing task partially.
-   */
   async update(req: Request, res: Response): Promise<Response | void> {
     const { id } = req.params;
-    
     if (typeof id !== 'string') {
       return res.status(400).json({ error: "Invalid ID format" });
     }
