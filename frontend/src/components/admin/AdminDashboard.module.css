@@ -185,3 +185,34 @@
   font-style: italic;
   padding: var(--space-lg);
 }
+
+/* User Detail Modal Styles */
+.userDetailContent {
+  padding: var(--space-md);
+}
+
+.statsHighlight {
+  display: flex;
+  justify-content: space-around;
+  margin: var(--space-md) 0;
+  padding: var(--space-md);
+  background-color: var(--bg-app);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.clickableRow {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.clickableRow:hover td {
+  background-color: var(--bg-surface-alt) !important;
+}
+
+.sortControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: var(--space-md);
+}

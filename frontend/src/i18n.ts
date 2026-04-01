@@ -118,6 +118,11 @@ i18n
           "editProfileName": "Display name",
           "editProfileSave": "Save",
           "editProfileSuccess": "Profile updated successfully!",
+          "sortBy": "Sort by",
+          "sortName": "Name",
+          "sortTotalTasks": "Task Volume",
+          "sortRate": "Success Rate",
+          "userDetails": "User Performance Details",
         }
       },
       es: {
@@ -231,6 +236,11 @@ i18n
           "editProfileName": "Nombre a mostrar",
           "editProfileSave": "Guardar",
           "editProfileSuccess": "¡Perfil actualizado correctamente!",
+          "sortBy": "Ordenar por",
+          "sortName": "Nombre",
+          "sortTotalTasks": "Volumen de Tareas",
+          "sortRate": "Tasa de Éxito",
+          "userDetails": "Detalles de Rendimiento",
         }
       }
     },

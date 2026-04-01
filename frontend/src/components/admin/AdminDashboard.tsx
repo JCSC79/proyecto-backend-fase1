@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { StatusDonutChart } from './charts/StatusDonutChart';
 import { UserTasksBarChart } from './charts/UserTasksBarChart';
 import {
   Card, Elevation, H2, H3, H4, Icon, InputGroup,
-  Button, Alert, Intent, Tag, Spinner, ButtonGroup
+  Button, Alert, Intent, Tag, Spinner, ButtonGroup,
+  Dialog, DialogBody, DialogFooter
 } from '@blueprintjs/core';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -18,18 +19,29 @@ const COLOR_PENDING = '#D9822B';
 const COLOR_IN_PROGRESS = '#2B95D9';
 const COLOR_COMPLETED = '#0F9960';
 
+// Type for sortable columns - Added 'email' for better utility
+type SortColumn = 'name' | 'email' | 'total' | 'pending' | 'inProgress' | 'completed' | 'rate';
+
 export const AdminDashboard: React.FC = () => {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const queryClient = useQueryClient();
 
-  // State for search, filtering, pagination, and pending role changes
+  // State for search, filtering and pagination
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'USER'>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 8; 
-  // State for pending role changes
+  const pageSize = 10; 
+
+  // State for Advanced Sorting
+  const [sort, setSort] = useState<{ column: SortColumn; direction: 'asc' | 'desc' }>({
+    column: 'name',
+    direction: 'asc'
+  });
+
+  // State for modals and alerts
   const [pendingChange, setPendingChange] = useState<{ user: IUserWithStats; targetRole: 'ADMIN' | 'USER' } | null>(null);
+  const [selectedUser, setSelectedUser] = useState<IUserWithStats | null>(null);
 
   const { data: users = [], isLoading, isError } = useQuery<IUserWithStats[]>({
     queryKey: ['admin-users'],
@@ -56,28 +68,56 @@ export const AdminDashboard: React.FC = () => {
     },
   });
 
-  // FILTERING AND PAGINATION LOGIC 
-  const filteredUsers = users.filter(u => {
-    const matchesRole = roleFilter === 'ALL' || u.role === roleFilter;
-    const matchesSearch = search === '' ||
-      (u.name ?? '').toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase());
-    return matchesRole && matchesSearch;
-  });
+  // SMART SORTING HANDLER
+  const handleSort = (column: SortColumn) => {
+    const isSameColumn = sort.column === column;
+    setSort({
+      column,
+      direction: isSameColumn && sort.direction === 'asc' ? 'desc' : 'asc'
+    });
+    setCurrentPage(1); // Reset to first page when order changes
+  };
 
-  const totalPages = Math.ceil(filteredUsers.length / pageSize);
+  // ADVANCED FILTERING AND SORTING LOGIC
+  const sortedAndFilteredUsers = useMemo(() => {
+    const filtered = users.filter(u => {
+      const matchesRole = roleFilter === 'ALL' || u.role === roleFilter;
+      const matchesSearch = search === '' ||
+        (u.name ?? '').toLowerCase().includes(search.toLowerCase()) ||
+        u.email.toLowerCase().includes(search.toLowerCase());
+      return matchesRole && matchesSearch;
+    });
+
+    return [...filtered].sort((a, b) => {
+      let valA: string | number;
+      let valB: string | number;
+
+      switch (sort.column) {
+        case 'email': 
+          valA = a.email.toLowerCase(); 
+          valB = b.email.toLowerCase(); 
+          break;
+        case 'total': valA = a.stats.total; valB = b.stats.total; break;
+        case 'pending': valA = a.stats.pending; valB = b.stats.pending; break;
+        case 'inProgress': valA = a.stats.inProgress; valB = b.stats.inProgress; break;
+        case 'completed': valA = a.stats.completed; valB = b.stats.completed; break;
+        case 'rate': valA = a.stats.completionRate; valB = b.stats.completionRate; break;
+        case 'name':
+        default:
+          valA = (a.name ?? a.email).toLowerCase();
+          valB = (b.name ?? b.email).toLowerCase();
+      }
+
+      if (valA < valB) return sort.direction === 'asc' ? -1 : 1;
+      if (valA > valB) return sort.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [users, roleFilter, search, sort]);
+
+  // PAGINATION LOGIC
+  const totalPages = Math.ceil(sortedAndFilteredUsers.length / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
-  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + pageSize);
-
-  const handleSearchChange = (val: string) => {
-    setSearch(val);
-    setCurrentPage(1);
-  };
-
-  const handleFilterChange = (role: 'ALL' | 'ADMIN' | 'USER') => {
-    setRoleFilter(role);
-    setCurrentPage(1);
-  };
+  const paginatedUsers = sortedAndFilteredUsers.slice(startIndex, startIndex + pageSize);
 
   // KPIs and chart data
   const globalTotal = users.reduce((s, u) => s + u.stats.total, 0);
@@ -102,12 +142,22 @@ export const AdminDashboard: React.FC = () => {
       [t('completed')]: u.stats.completed,
     }));
 
-  if (isLoading) {
-    return <Spinner size={50} intent={Intent.PRIMARY} />;
-  }
-  if (isError) {
-    return <p style={{ color: 'var(--text-main)' }}>{t('errorMessage')}</p>;
-  }
+  // Helper to render sortable table headers
+  const renderHeader = (label: string, col: SortColumn) => (
+    <th onClick={() => handleSort(col)} style={{ cursor: 'pointer', userSelect: 'none' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        {label}
+        <Icon 
+          icon={sort.column === col ? (sort.direction === 'asc' ? 'chevron-up' : 'chevron-down') : 'double-caret-vertical'} 
+          size={12} 
+          style={{ opacity: sort.column === col ? 1 : 0.2 }}
+        />
+      </div>
+    </th>
+  );
+
+  if (isLoading) return <Spinner size={50} intent={Intent.PRIMARY} />;
+  if (isError) return <p style={{ color: 'var(--text-main)' }}>{t('errorMessage')}</p>;
 
   return (
     <div className={styles.wrapper}>
@@ -115,6 +165,7 @@ export const AdminDashboard: React.FC = () => {
         <Icon icon="shield" size={25} intent="warning" /> {t('adminPanel')}
       </H2>
 
+      {/* KPIs Grid */}
       <div className={styles.kpiGrid}>
         <Card elevation={Elevation.TWO} className={styles.kpiCard}>
           <H4 className={styles.kpiLabel}>{t('adminTotalUsers')}</H4>
@@ -134,6 +185,7 @@ export const AdminDashboard: React.FC = () => {
         </Card>
       </div>
 
+      {/* Charts Grid */}
       <div className={styles.chartsGrid}>
         <Card elevation={Elevation.ONE} className={styles.chartCard}>
           <H3 className={styles.chartTitle}>{t('statusDistribution')}</H3>
@@ -150,42 +202,46 @@ export const AdminDashboard: React.FC = () => {
         </Card>
       </div>
 
+      {/* Interactive User Table */}
       <Card elevation={Elevation.ONE} className={styles.tableCard}>
         <H3 className={styles.tableTitle}><Icon icon="people" /> {t('adminUserList')}</H3>
+        
         <div className={styles.toolbar}>
           <div className={styles.searchBox}>
             <InputGroup 
               leftIcon="search" 
               placeholder={t('adminSearchUsers')} 
               value={search} 
-              onChange={e => handleSearchChange(e.target.value)} 
+              onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} 
             />
           </div>
-          <Button text={t('all')} active={roleFilter === 'ALL'} onClick={() => handleFilterChange('ALL')} minimal />
-          <Button text="Admin" active={roleFilter === 'ADMIN'} intent="primary" onClick={() => handleFilterChange('ADMIN')} minimal />
-          <Button text="User" active={roleFilter === 'USER'} onClick={() => handleFilterChange('USER')} minimal />
+          <ButtonGroup minimal>
+            <Button text={t('all')} active={roleFilter === 'ALL'} onClick={() => { setRoleFilter('ALL'); setCurrentPage(1); }} />
+            <Button text="Admin" active={roleFilter === 'ADMIN'} intent="primary" onClick={() => { setRoleFilter('ADMIN'); setCurrentPage(1); }} />
+            <Button text="User" active={roleFilter === 'USER'} onClick={() => { setRoleFilter('USER'); setCurrentPage(1); }} />
+          </ButtonGroup>
         </div>
 
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>{t('adminColName')}</th>
-              <th>{t('adminColEmail')}</th>
+              {renderHeader(t('adminColName'), 'name')}
+              {renderHeader(t('adminColEmail'), 'email')}
               <th>{t('adminColRole')}</th>
-              <th>{t('adminColTotal')}</th>
-              <th>{t('pending')}</th>
-              <th>{t('inProgress')}</th>
-              <th>{t('completed')}</th>
-              <th>{t('completionRate')}</th>
+              {renderHeader(t('adminColTotal'), 'total')}
+              {renderHeader(t('pending'), 'pending')}
+              {renderHeader(t('inProgress'), 'inProgress')}
+              {renderHeader(t('completed'), 'completed')}
+              {renderHeader(t('completionRate'), 'rate')}
               <th>{t('adminColActions')}</th>
             </tr>
           </thead>
           <tbody>
             {paginatedUsers.length === 0 ? (
-              <tr className={styles.emptyRow}><td colSpan={9}>{t('noResults')}</td></tr>
+              <tr className={styles.emptyRow}><td colSpan={10}>{t('noResults')}</td></tr>
             ) : (
               paginatedUsers.map(user => (
-                <tr key={user.id}>
+                <tr key={user.id} className={styles.clickableRow} onClick={() => setSelectedUser(user)}>
                   <td>{user.name ?? '—'}</td>
                   <td>{user.email}</td>
                   <td>
@@ -203,9 +259,9 @@ export const AdminDashboard: React.FC = () => {
                   </td>
                   <td>
                     {user.role === 'USER' ? (
-                      <Button small icon="arrow-up" intent="warning" text={t('adminPromote')} onClick={() => setPendingChange({ user, targetRole: 'ADMIN' })} />
+                      <Button small icon="arrow-up" intent="warning" text={t('adminPromote')} onClick={(e) => { e.stopPropagation(); setPendingChange({ user, targetRole: 'ADMIN' }); }} />
                     ) : (
-                      <Button small icon="arrow-down" intent="danger" text={t('adminDemote')} onClick={() => setPendingChange({ user, targetRole: 'USER' })} />
+                      <Button small icon="arrow-down" intent="danger" text={t('adminDemote')} onClick={(e) => { e.stopPropagation(); setPendingChange({ user, targetRole: 'USER' }); }} />
                     )}
                   </td>
                 </tr>
@@ -214,7 +270,7 @@ export const AdminDashboard: React.FC = () => {
           </tbody>
         </table>
 
-        {/* PAGINATION */}
+        {/* Pagination */}
         {totalPages > 1 && (
           <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
             <ButtonGroup>
@@ -226,6 +282,44 @@ export const AdminDashboard: React.FC = () => {
         )}
       </Card>
 
+      {/* User Detail Modal */}
+      <Dialog
+        isOpen={selectedUser !== null}
+        onClose={() => setSelectedUser(null)}
+        title={t('userDetails')}
+        icon="info-sign"
+        style={{ width: '500px' }}
+      >
+        <DialogBody>
+          {selectedUser && (
+            <div className={styles.userDetailContent}>
+              <H3>{selectedUser.name ?? selectedUser.email}</H3>
+              <p className="bp6-text-muted">{selectedUser.email}</p>
+              
+              <div className={styles.statsHighlight}>
+                <div style={{ textAlign: 'center' }}>
+                  <div className="bp6-text-muted">{t('adminColTotal')}</div>
+                  <H2 style={{ margin: 0 }}>{selectedUser.stats.total}</H2>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div className="bp6-text-muted">{t('completionRate')}</div>
+                  <H2 style={{ margin: 0, color: 'var(--status-done)' }}>{selectedUser.stats.completionRate}%</H2>
+                </div>
+              </div>
+
+              <H4>{t('statusDistribution')}</H4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
+                <Tag intent="warning" large fill minimal icon="time">{t('pending')}: {selectedUser.stats.pending}</Tag>
+                <Tag intent="primary" large fill minimal icon="play">{t('inProgress')}: {selectedUser.stats.inProgress}</Tag>
+                <Tag intent="success" large fill minimal icon="tick-circle">{t('completed')}: {selectedUser.stats.completed}</Tag>
+              </div>
+            </div>
+          )}
+        </DialogBody>
+        <DialogFooter actions={<Button onClick={() => setSelectedUser(null)} large>{t('close')}</Button>} />
+      </Dialog>
+
+      {/* Alerts */}
       <Alert
         isOpen={pendingChange !== null}
         icon={pendingChange?.targetRole === 'ADMIN' ? 'arrow-up' : 'arrow-down'}
