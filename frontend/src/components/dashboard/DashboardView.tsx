@@ -101,7 +101,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
   const handleChartEvent = (data: unknown) => {
     if (data && typeof data === 'object' && 'name' in data) {
       const entryName = (data as { name: string }).name;
-      if (statusMap[entryName]) onChartClick(statusMap[entryName]);
+      if (statusMap[entryName]) {
+        onChartClick(statusMap[entryName]);
+      }
     }
   };
 
