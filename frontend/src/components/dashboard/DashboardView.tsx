@@ -1,8 +1,9 @@
 import React from 'react';
 import { Card, Elevation, Icon, H3, H2, H4 } from '@blueprintjs/core';
 import { useTranslation } from 'react-i18next';
+import { StatusDonutChart } from '../admin/charts/StatusDonutChart';
 import {
-  PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip,
+  ResponsiveContainer, Tooltip, Cell,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line
 } from 'recharts';
 import type { Task, TaskStatus } from '../../types/task';
@@ -55,13 +56,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
   // HUMAN-READABLE TIME CALCULATION (Days + Hours)
   const completedWithDates = completedTasks.filter(task => task.updatedAt && task.createdAt);
   let timeDisplay = "--";
-  
+
   if (completedWithDates.length > 0) {
     const totalMs = completedWithDates.reduce((acc, task) => {
       // Using '!' as the filter above ensures dates exist
       return acc + (new Date(task.updatedAt!).getTime() - new Date(task.createdAt!).getTime());
     }, 0);
-    
+
     const avgMs = totalMs / completedWithDates.length;
     const totalHours = Math.floor(avgMs / (1000 * 60 * 60));
     const days = Math.floor(totalHours / 24);
@@ -74,7 +75,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
       const dayPart = days > 0 ? `${days}${t('days')}` : "";
       const connector = (days > 0 && remainingHours > 0) ? t('and') : "";
       const hourPart = remainingHours > 0 ? `${remainingHours}${t('hours')}` : "";
-      
+
       timeDisplay = `${dayPart}${connector}${hourPart}`;
     }
   }
@@ -84,7 +85,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
     const d = new Date();
     d.setDate(d.getDate() - i);
     const dateStr = d.toLocaleDateString(undefined, { day: '2-digit', month: 'short' });
-    const count = tasks.filter(task => 
+    const count = tasks.filter(task =>
       task.createdAt && new Date(task.createdAt).toDateString() === d.toDateString()
     ).length;
     return { date: dateStr, count };
@@ -147,21 +148,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
         <Card elevation={Elevation.ONE} className={styles.chartCard}>
           <H3 className={styles.chartTitle}>{t('statusDistribution')}</H3>
           <div className={styles.chartContainer}>
-            <ResponsiveContainer>
-              <PieChart>
-                <Pie
-                  data={chartData.filter(d => d.value > 0)}
-                  cx="50%" cy="45%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value"
-                  label={(entry) => `${entry.name}: ${entry.value}`}
-                  onClick={handleChartEvent}
-                  style={{ cursor: 'pointer', outline: 'none' }}
-                >
-                  {chartData.map((entry, index) => <Cell key={index} fill={entry.color} stroke="none" />)}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-                <Legend verticalAlign="bottom" height={36} />
-              </PieChart>
-            </ResponsiveContainer>
+            <StatusDonutChart
+              data={chartData.filter(d => d.value > 0)}
+              onPieClick={handleChartEvent} //  Keeps click navigation
+              height="100%"
+            />
           </div>
         </Card>
 

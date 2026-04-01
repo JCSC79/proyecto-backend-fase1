@@ -12,7 +12,8 @@ const AdminPage: React.FC = () => {
     <div className={styles.wrapper}>
       <Header
         progress={0}
-        activeView="home"
+        showProgress={false}
+        activeView="admin"
         setActiveView={(view) => {
           if (view === 'home') { 
             navigate('/'); 

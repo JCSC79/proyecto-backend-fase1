@@ -13,11 +13,16 @@ type ViewMode = 'home' | 'dashboard';
 
 interface HeaderProps {
   progress: number;
-  activeView: ViewMode;
+  activeView: ViewMode | 'admin';
   setActiveView: (view: ViewMode) => void;
+  showProgress?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ progress, activeView, setActiveView }) => {
+export const Header: React.FC<HeaderProps> = ({
+  progress,
+  activeView,
+  setActiveView,
+  showProgress = true }) => {
   const { t, i18n } = useTranslation();
   const { isDark, toggleTheme } = useTheme();
   const { user, isAdmin, logout, updateName } = useAuth();
@@ -47,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({ progress, activeView, setActiveV
   };
 
   const handleSaveName = async () => {
-    if (!nameInput.trim()) { 
+    if (!nameInput.trim()) {
       return;
     }
     setIsSaving(true);
@@ -107,18 +112,19 @@ export const Header: React.FC<HeaderProps> = ({ progress, activeView, setActiveV
         </div>
 
         {/* Progress */}
-        <div className={styles.progressSection}>
-          <span className={styles.progressLabel}>
-            {t('progress')}: {percentage}%
-          </span>
-          <ProgressBar
-            className={styles.progressBar}
-            intent={percentage === 100 ? 'success' : 'primary'}
-            value={progress}
-            stripes={percentage < 100}
-          />
-        </div>
-
+        {showProgress && (
+          <div className={styles.progressSection}>
+            <span className={styles.progressLabel}>
+              {t('progress')}: {percentage}%
+            </span>
+            <ProgressBar
+              className={styles.progressBar}
+              intent={percentage === 100 ? 'success' : 'primary'}
+              value={progress}
+              stripes={percentage < 100}
+            />
+          </div>
+        )}
         <Navbar.Divider />
 
         {/* User info + controls */}

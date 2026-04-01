@@ -193,7 +193,7 @@ i18n
           "loginRequiredFields": "El correo y la contraseña son obligatorios",
           "loginError": "Credenciales incorrectas. Inténtalo de nuevo.",
           "togglePassword": "Mostrar/ocultar contraseña",
-          "adminPanel": "Panel de Admin",
+          "adminPanel": "Panel de Administrador",
           "adminTotalUsers": "Total de Usuarios",
           "adminTotalTasks": "Total de Tareas",
           "adminInProgress": "En Curso",
