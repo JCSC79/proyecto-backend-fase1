@@ -33,7 +33,7 @@ exports.seed = async function(knex) {
 
     tasks.push({
       id: crypto.randomUUID(),
-      title: `Task #${i}: Stress Test Data`,
+      title: `Task #STRESS-${i}: Stress Test Data`,
       description: `Iteration ${i}. Validating clean architecture and foreign key constraints.`,
       status: status,
       userId: owner.id, // <--- THE FIX: Assigning a real owner
