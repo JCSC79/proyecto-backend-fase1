@@ -1,14 +1,14 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import type { IUser } from '../types/user';
 import { loginRequest, registerRequest, updateMeRequest } from '../api/auth.api';
+import api from '../api/axiosInstance'; //
 
 interface AuthState {
-  token: string | null;
   user: IUser | null;
+  isAuthenticated: boolean; // Now derived from presence of user
 }
 
 interface AuthContextType extends AuthState {
-  isAuthenticated: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name?: string) => Promise<void>;
@@ -18,52 +18,53 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-/** Rehydrate session from localStorage on page refresh */
-const loadStoredAuth = (): AuthState => {
+/** Rehydrate session: we only keep user data, token is in HttpOnly cookie */
+const loadStoredAuth = (): { user: IUser | null } => {
   try {
-    const token = localStorage.getItem('auth_token');
     const raw = localStorage.getItem('auth_user');
     const user: IUser | null = raw ? (JSON.parse(raw) as IUser) : null;
-    return { token, user };
+    return { user };
   } catch {
-    return { token: null, user: null };
+    return { user: null };
   }
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [auth, setAuth] = useState<AuthState>(loadStoredAuth);
+  const [auth, setAuth] = useState<{ user: IUser | null }>(loadStoredAuth);
 
   const login = useCallback(async (email: string, password: string) => {
-    const { token, user } = await loginRequest(email, password);
-    localStorage.setItem('auth_token', token);
+    const { user } = await loginRequest(email, password);
     localStorage.setItem('auth_user', JSON.stringify(user));
-    setAuth({ token, user });
+    setAuth({ user });
   }, []);
 
   const register = useCallback(async (email: string, password: string, name?: string) => {
-    const { token, user } = await registerRequest(email, password, name);
-    localStorage.setItem('auth_token', token);
+    const { user } = await registerRequest(email, password, name);
     localStorage.setItem('auth_user', JSON.stringify(user));
-    setAuth({ token, user });
+    setAuth({ user });
   }, []);
 
   const updateName = useCallback(async (name: string) => {
     const { user } = await updateMeRequest(name);
     localStorage.setItem('auth_user', JSON.stringify(user));
-    setAuth(prev => ({ ...prev, user }));
+    setAuth({ user });
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_user');
-    setAuth({ token: null, user: null });
+  const logout = useCallback(async () => {
+    try {
+      // NEW: Notify backend to clear the cookie
+      await api.post('/api/auth/logout');
+    } finally {
+      localStorage.removeItem('auth_user');
+      localStorage.removeItem('auth_token'); // Clean up old leftovers
+      setAuth({ user: null });
+    }
   }, []);
 
   return (
     <AuthContext.Provider value={{
-      token: auth.token,
       user: auth.user,
-      isAuthenticated: !!auth.token,
+      isAuthenticated: !!auth.user,
       isAdmin: auth.user?.role === 'ADMIN',
       login,
       register,
@@ -75,10 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-/**
- * useAuth — shorthand hook to consume AuthContext.
- * Usage: const { user, isAdmin, login, logout } = useAuth();
- */
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = (): AuthContextType => {
   const ctx = useContext(AuthContext);
   if (!ctx) {

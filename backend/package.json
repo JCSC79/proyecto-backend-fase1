@@ -4,7 +4,7 @@
   "description": "Task Manager Backend - Phase 1",
   "type": "module",
   "main": "dist/server.js",
-"scripts": {
+  "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
@@ -22,6 +22,7 @@
     "@types/node": "^25.3.3",
     "amqplib": "^0.10.9",
     "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
@@ -37,6 +38,7 @@
   "devDependencies": {
     "@types/amqplib": "^0.10.8",
     "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/swagger-jsdoc": "^6.0.4",

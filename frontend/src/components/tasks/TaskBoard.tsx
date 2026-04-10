@@ -67,9 +67,9 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, statusFilter }) => 
         </div>
 
         <div className={styles.pagination}>
-          <Button icon="chevron-left" text={t('prev')} disabled={validPage === 1} onClick={() => setPage(status, validPage - 1)} small />
+          <Button icon="chevron-left" text={t('prev')} disabled={validPage === 1} onClick={() => setPage(status, validPage - 1)} size="small" />
           <span className={styles.pageLabel}>{t('page')} {validPage} {t('of')} {totalPages}</span>
-          <Button rightIcon="chevron-right" text={t('next')} disabled={validPage === totalPages} onClick={() => setPage(status, validPage + 1)} small />
+          <Button endIcon="chevron-right" text={t('next')} disabled={validPage === totalPages} onClick={() => setPage(status, validPage + 1)} size="small" />
         </div>
       </div>
     );

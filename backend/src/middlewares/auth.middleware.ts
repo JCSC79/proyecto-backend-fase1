@@ -3,10 +3,6 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key';
 
-/**
- * Custom Interface to extend Express Request with user identity.
- * This avoids using 'any' and maintains strict type safety.
- */
 interface AuthRequest extends Request {
     user?: {
         id: string;
@@ -15,12 +11,13 @@ interface AuthRequest extends Request {
     };
 }
 
-/**
- * Auth Middleware - Intercepts requests to validate JWT Tokens.
- */
 export const authenticateToken = (req: Request, res: Response, next: NextFunction): void => {
+    // REFINEMENT: Check both Authorization header and HttpOnly cookies
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    const headerToken = authHeader && authHeader.split(' ')[1];
+    const cookieToken = req.cookies['auth_token'];
+
+    const token = cookieToken || headerToken;
 
     if (!token) {
         res.status(401).json({ error: 'Access denied. No token provided.' });
@@ -29,10 +26,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET) as { id: string; role: string; email: string };
-        
-        // Technical refinement: Type casting to our custom interface
         (req as AuthRequest).user = decoded;
-        
         next();
     } catch (error) {
         console.error('JWT verification error:', error);

@@ -72,7 +72,7 @@ export const TaskForm: React.FC = () => {
         <FormGroup label={t('title')} labelFor="title-input" labelInfo={`(${t('required')})`}>
           <InputGroup
             id="title-input"
-            large
+            size="large"
             placeholder={t('placeholderTitle')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -81,7 +81,7 @@ export const TaskForm: React.FC = () => {
         <FormGroup label={t('description')} labelFor="description-input" labelInfo={`(${t('required')})`}>
           <TextArea
             fill
-            large
+            size="large"
             id="description-input"
             placeholder={t('placeholderDesc')}
             value={description}
@@ -96,15 +96,15 @@ export const TaskForm: React.FC = () => {
             icon="add" 
             type="submit" 
             loading={mutation.isPending} 
-            large 
+            size="large" 
           />
           <Button 
             intent="none" 
-            outlined 
+            variant="outlined"
             text={t('clear')} 
             icon="eraser" 
             onClick={handleClear} 
-            large 
+            size="large" 
           />
         </div>
       </form>

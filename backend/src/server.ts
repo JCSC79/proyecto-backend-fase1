@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser'; // Added cookie-parser for potential future use in session management or cookies handling
 import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger.ts';
@@ -22,8 +23,14 @@ const loginRateLimiter = rateLimit({
     message: { error: 'Too many login attempts. Please try again later.' },
 });
 
-app.use(cors());
+// SECURITY FIX: Update CORS to allow credentials from the frontend origin
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true
+}));
+
 app.use(express.json());
+app.use(cookieParser()); // Required to parse cookies from headers
 
 app.use((req, _res, next) => {
     const time = new Date().toLocaleTimeString();

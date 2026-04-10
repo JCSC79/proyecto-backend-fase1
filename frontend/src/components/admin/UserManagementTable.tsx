@@ -71,7 +71,7 @@ export const UserManagementTable: React.FC<Props> = ({
                 </span>
               </td>
               <td>
-                <ButtonGroup minimal> {/* 👈 Usamos ButtonGroup para limpiar el error */}
+                <ButtonGroup variant="minimal"> {/* We use ButtonGroup to fix the error */}
                   {user.role === 'USER' ? (
                     <Button small icon="arrow-up" intent="warning" text={t('adminPromote')} 
                       onClick={(e) => { e.stopPropagation(); onPromote(user); }} />

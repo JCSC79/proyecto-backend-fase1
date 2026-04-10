@@ -31,31 +31,23 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
   const isCompleted = task.status === 'COMPLETED';
   const statusIntent = isCompleted ? Intent.SUCCESS : isInProgress ? Intent.PRIMARY : Intent.WARNING;
 
-  // // en que se renderiza el componente por primera vez.
-  // const [isBrandNew] = useState(() => {
-  //   if (!task.createdAt) {
-  //     return false;
-  //   }
-  //   const createdTime = new Date(task.createdAt).getTime();
-  //   // Comparamos el momento de creación con el momento de montaje inicial
-  //   return Date.now() - createdTime < 5000;
-  // });
-
-// Estado para controlar la animación visual
+  // State to control visual animation
   const [showHighlight, setShowHighlight] = useState(() => {
-    if (!task.createdAt) return false;
-    // Si la tarea se creó hace menos de 5 segundos, empezamos con el highlight encendido
+    if (!task.createdAt) {
+      return false;
+    }
+    // If the task was created less than 5 seconds ago, start with the highlight on
     return Date.now() - new Date(task.createdAt).getTime() < 5000;
   });
 
   useEffect(() => {
-    // Si el highlight está encendido, programamos su apagado tras 2 segundos (duración de tu CSS)
+    // If the highlight is on, schedule its turn off after 2 seconds (duration of your CSS)
     if (showHighlight) {
       const timer = setTimeout(() => setShowHighlight(false), 2000);
-      return () => clearTimeout(timer); // Limpieza para evitar fugas de memoria
+      return () => clearTimeout(timer); // Cleanup to avoid memory leaks
     }
   }, [showHighlight]);
-  
+
 
   const updateMutation = useMutation({
     mutationFn: (payload: Partial<Task>) => api.patch(`/tasks/${task.id}`, payload),
@@ -111,9 +103,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
         className={clsx(
           styles.card,
           isCompleted ? styles.statusDone : isInProgress ? styles.statusProgress : styles.statusPending,
-          // isBrandNew && styles.newTaskHighlight
           showHighlight && styles.newTaskHighlight
-
         )}
       >
         <div className={styles.content} onClick={() => setIsDetailsOpen(true)}>
@@ -125,13 +115,13 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
           </Text>
           {task.createdAt && (
             <div className={styles.dateRow}>
-              <Icon icon="calendar" size={10} />
+              <Icon icon="calendar" size={15} />
               <span>{new Date(task.createdAt).toLocaleDateString()}</span>
             </div>
           )}
         </div>
 
-        <ButtonGroup minimal className={styles.actions}>
+        <ButtonGroup variant="minimal" className={styles.actions}>
           {prevStatus && (
             <Button icon="undo" onClick={(e) => { e.stopPropagation(); updateMutation.mutate({ status: prevStatus }); }} />
           )}
@@ -153,7 +143,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
         <div className={Classes.DIALOG_BODY}>
           <div className={styles.detailHeader}>
             <H5 style={{ margin: 0 }}>{task.title}</H5>
-            <Tag intent={statusIntent} large round style={{ textTransform: 'uppercase' }}>
+            <Tag intent={statusIntent} size="large" round style={{ textTransform: 'uppercase' }}>
               {getTranslatedStatus(task.status)}
             </Tag>
           </div>

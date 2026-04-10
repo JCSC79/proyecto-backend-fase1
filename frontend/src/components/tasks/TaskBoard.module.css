@@ -18,7 +18,7 @@
   background-color: var(--bg-surface-alt);
   padding: var(--space-md);
   border-radius: var(--radius-md);
-  height: 580px;
+  height: 540px;
   display: flex;
   flex-direction: column;
   transition: var(--transition);

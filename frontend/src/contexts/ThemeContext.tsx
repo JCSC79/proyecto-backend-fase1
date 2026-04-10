@@ -42,6 +42,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
  * useTheme — shorthand hook to consume ThemeContext.
  * Usage: const { isDark, toggleTheme } = useTheme();
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTheme = (): ThemeContextType => {
   const ctx = useContext(ThemeContext);
   if (!ctx) {

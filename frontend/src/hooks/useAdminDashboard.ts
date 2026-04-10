@@ -93,8 +93,12 @@ export const useAdminDashboard = () => {
           valB = (b.name ?? b.email).toLowerCase();
       }
 
-      if (valA < valB) return sort.direction === 'asc' ? -1 : 1;
-      if (valA > valB) return sort.direction === 'asc' ? 1 : -1;
+      if (valA < valB) {
+        return sort.direction === 'asc' ? -1 : 1;
+      }
+      if (valA > valB) {
+        return sort.direction === 'asc' ? 1 : -1;
+      }
       return 0;
     });
   }, [users, roleFilter, search, sort]);
