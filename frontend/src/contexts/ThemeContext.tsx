@@ -17,8 +17,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const body = document.body;
 
     if (isDark) {
-      root.setAttribute('data-theme', 'dark');  // activa nuestros CSS vars
-      body.classList.add('bp6-dark');            // activa el tema oscuro de Blueprint
+      root.setAttribute('data-theme', 'dark');  //  activate our custom dark theme
+      body.classList.add('bp6-dark');            //  activate Blueprint's dark theme
       localStorage.setItem('theme', 'dark');
     } else {
       root.removeAttribute('data-theme');

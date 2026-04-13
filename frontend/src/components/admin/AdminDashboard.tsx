@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusDonutChart } from './charts/StatusDonutChart';
+import { StatusDonutChart, type ChartDataPoint } from './charts/StatusDonutChart';
 import { UserTasksBarChart } from './charts/UserTasksBarChart';
 import {
   Card, Elevation, H2, H3, H4, Icon, InputGroup,
@@ -11,19 +11,13 @@ import { UserManagementTable } from './UserManagementTable';
 import { useTheme } from '../../contexts/ThemeContext';
 import styles from './AdminDashboard.module.css';
 
-// Constants for visual representation
 const COLOR_PENDING = '#D9822B';
 const COLOR_IN_PROGRESS = '#2B95D9';
 const COLOR_COMPLETED = '#0F9960';
 
-/**
- * AdminDashboard - Main orchestrator for the admin view.
- * Now modularized for maximum readability and maintainability.
- */
 export const AdminDashboard: React.FC = () => {
   const { isDark } = useTheme();
   
-  // Use our custom hook to handle all data and business logic
   const {
     t, isLoading, isError, search, setSearch, roleFilter, setRoleFilter,
     currentPage, setCurrentPage, totalPages, paginatedUsers, sort, handleSort,
@@ -34,15 +28,18 @@ export const AdminDashboard: React.FC = () => {
   if (isLoading) {
     return <Spinner size={50} intent={Intent.PRIMARY} />;
   }
+
   if (isError) {
     return <p style={{ color: 'var(--text-main)' }}>{t('errorMessage')}</p>;
   }
 
-  // Data preparation for charts
-  const pieData = [
-    { name: t('pending'), value: globalStats.pending, color: COLOR_PENDING },
-    { name: t('inProgress'), value: globalStats.inProgress, color: COLOR_IN_PROGRESS },
-    { name: t('completed'), value: globalStats.completed, color: COLOR_COMPLETED },
+  /**
+   * We use 'fill' instead of 'color' to comply with the modernized StatusDonutChart interface
+   */
+  const pieData: ChartDataPoint[] = [
+    { name: t('pending'), value: globalStats.pending, fill: COLOR_PENDING },
+    { name: t('inProgress'), value: globalStats.inProgress, fill: COLOR_IN_PROGRESS },
+    { name: t('completed'), value: globalStats.completed, fill: COLOR_COMPLETED },
   ].filter(d => d.value > 0);
 
   const barData = [...users]
@@ -92,8 +89,7 @@ export const AdminDashboard: React.FC = () => {
           <UserTasksBarChart 
             data={barData}
             isDark={isDark}
-            colors={{ 
-              pending: COLOR_PENDING, inProgress: COLOR_IN_PROGRESS, completed: COLOR_COMPLETED }}
+            colors={{ pending: COLOR_PENDING, inProgress: COLOR_IN_PROGRESS, completed: COLOR_COMPLETED }}
             labels={{ pending: t('pending'), inProgress: t('inProgress'), completed: t('completed') }}
           />
         </Card>
@@ -102,7 +98,6 @@ export const AdminDashboard: React.FC = () => {
       {/* User Management Section */}
       <Card elevation={Elevation.ONE} className={styles.tableCard}>
         <H3 className={styles.tableTitle}><Icon icon="people" /> {t('adminUserList')}</H3>
-        
         <div className={styles.toolbar}>
           <div className={styles.searchBox}>
             <InputGroup 

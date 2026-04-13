@@ -73,10 +73,10 @@ export const UserManagementTable: React.FC<Props> = ({
               <td>
                 <ButtonGroup variant="minimal"> {/* We use ButtonGroup to fix the error */}
                   {user.role === 'USER' ? (
-                    <Button small icon="arrow-up" intent="warning" text={t('adminPromote')} 
+                    <Button size="small" icon="arrow-up" intent="warning" text={t('adminPromote')} 
                       onClick={(e) => { e.stopPropagation(); onPromote(user); }} />
                   ) : (
-                    <Button small icon="arrow-down" intent="danger" text={t('adminDemote')} 
+                    <Button size="small" icon="arrow-down" intent="danger" text={t('adminDemote')} 
                       onClick={(e) => { e.stopPropagation(); onDemote(user); }} />
                   )}
                 </ButtonGroup>

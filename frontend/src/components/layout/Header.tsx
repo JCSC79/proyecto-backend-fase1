@@ -84,29 +84,28 @@ export const Header: React.FC<HeaderProps> = ({
         {/* View switcher */}
         <div className={styles.viewSwitcher}>
           <Button
-            minimal
+            variant="minimal"
             icon="home"
             text={t('home')}
             active={activeView === 'home'}
             onClick={() => setActiveView('home')}
-            large
-          />
+            size="large"          />
           <Button
-            minimal
+            variant="minimal"
             icon="dashboard"
             text={t('dashboard')}
             active={activeView === 'dashboard'}
             onClick={() => setActiveView('dashboard')}
-            large
+            size="large"
           />
           {isAdmin && (
             <Button
-              minimal
+              variant="minimal"
               icon="shield"
               text={t('adminPanel')}
               intent="warning"
               onClick={() => navigate('/admin')}
-              large
+              size="large"
             />
           )}
         </div>
@@ -150,13 +149,13 @@ export const Header: React.FC<HeaderProps> = ({
               <span className={styles.userRole}>{isAdmin ? 'Admin' : 'User'}</span>
             </div>
           )}
-          <Button minimal icon={isDark ? 'flash' : 'moon'} onClick={toggleTheme} large />
-          <Button minimal onClick={toggleLanguage} large>
+          <Button variant="minimal" icon={isDark ? 'flash' : 'moon'} onClick={toggleTheme} size="large" />
+          <Button variant="minimal" onClick={toggleLanguage} size="large">
             {i18n.language.startsWith('es')
               ? <><span className="fi fi-es" style={{ marginRight: 6 }} />ES</>
               : <><span className="fi fi-gb" style={{ marginRight: 6 }} />EN</>}
           </Button>
-          {user && <Button minimal icon="log-out" onClick={logout} large />}
+          {user && <Button variant="minimal" icon="log-out" onClick={logout} size="large" />}
         </div>
 
       </Navbar.Group>
@@ -175,7 +174,7 @@ export const Header: React.FC<HeaderProps> = ({
               value={nameInput}
               onChange={e => setNameInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); }}
-              large
+              size="large"
               autoFocus
             />
           </FormGroup>

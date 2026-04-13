@@ -43,14 +43,14 @@ export const UserDetailDialog: React.FC<UserDetailDialogProps> = ({ user, isOpen
 
             <H4>{t('statusDistribution')}</H4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
-              <Tag intent="warning" large fill minimal icon="time">{t('pending')}: {user.stats.pending}</Tag>
-              <Tag intent="primary" large fill minimal icon="play">{t('inProgress')}: {user.stats.inProgress}</Tag>
-              <Tag intent="success" large fill minimal icon="tick-circle">{t('completed')}: {user.stats.completed}</Tag>
+              <Tag intent="warning" size="large" fill minimal icon="time">{t('pending')}: {user.stats.pending}</Tag>
+              <Tag intent="primary" size="large" fill minimal icon="play">{t('inProgress')}: {user.stats.inProgress}</Tag>
+              <Tag intent="success" size="large" fill minimal icon="tick-circle">{t('completed')}: {user.stats.completed}</Tag>
             </div>
           </div>
         )}
       </DialogBody>
-      <DialogFooter actions={<Button onClick={onClose} large>{t('close')}</Button>} />
+      <DialogFooter actions={<Button onClick={onClose} size="large">{t('close')}</Button>} />
     </Dialog>
   );
 };

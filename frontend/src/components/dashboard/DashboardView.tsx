@@ -1,9 +1,10 @@
 import React from 'react';
 import { Card, Elevation, Icon, H3, H2, H4 } from '@blueprintjs/core';
 import { useTranslation } from 'react-i18next';
-import { StatusDonutChart } from '../admin/charts/StatusDonutChart';
+// We import the shared type to ensure consistency
+import { StatusDonutChart, type ChartDataPoint } from '../admin/charts/StatusDonutChart';
 import {
-  ResponsiveContainer, Tooltip, Cell,
+  ResponsiveContainer, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line
 } from 'recharts';
 import type { Task, TaskStatus } from '../../types/task';
@@ -18,12 +19,6 @@ interface DashboardViewProps {
 interface CustomTooltipProps {
   active?: boolean;
   payload?: Array<{ name: string; value: number; payload: unknown }>;
-}
-
-interface ChartDataPoint {
-  name: string;
-  value: number;
-  color: string;
 }
 
 const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
@@ -62,7 +57,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
       // Using '!' as the filter above ensures dates exist
       return acc + (new Date(task.updatedAt!).getTime() - new Date(task.createdAt!).getTime());
     }, 0);
-
     const avgMs = totalMs / completedWithDates.length;
     const totalHours = Math.floor(avgMs / (1000 * 60 * 60));
     const days = Math.floor(totalHours / 24);
@@ -71,11 +65,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
     if (totalHours === 0) {
       timeDisplay = t('lessThanDay');
     } else {
+
       // Build dynamic string: "X days and Y hours"
       const dayPart = days > 0 ? `${days}${t('days')}` : "";
       const connector = (days > 0 && remainingHours > 0) ? t('and') : "";
       const hourPart = remainingHours > 0 ? `${remainingHours}${t('hours')}` : "";
-
       timeDisplay = `${dayPart}${connector}${hourPart}`;
     }
   }
@@ -98,6 +92,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
     [t('completed')]: 'COMPLETED'
   };
 
+  /**
+   * Refined handler using 'unknown' and type guards to replace 'any'
+   */
   const handleChartEvent = (data: unknown) => {
     if (data && typeof data === 'object' && 'name' in data) {
       const entryName = (data as { name: string }).name;
@@ -107,10 +104,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
     }
   };
 
+  /**
+   * Data preparation using 'fill' to match StatusDonutChart interface
+   */
   const chartData: ChartDataPoint[] = [
-    { name: t('pending'), value: pending, color: '#D9822B' },
-    { name: t('inProgress'), value: inProgress, color: '#2B95D9' },
-    { name: t('completed'), value: completedCount, color: '#0F9960' }
+    { name: t('pending'), value: pending, fill: '#D9822B' },
+    { name: t('inProgress'), value: inProgress, fill: '#2B95D9' },
+    { name: t('completed'), value: completedCount, fill: '#0F9960' }
   ];
 
   return (
@@ -125,19 +125,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
           <H4 className={styles.kpiLabel}>{t('totalTasks')}</H4>
           <div className={styles.kpiValue}>{total}</div>
         </Card>
-
         <Card elevation={Elevation.TWO} className={styles.kpiCard}>
           <H4 className={styles.kpiLabel}>{t('completionRate')}</H4>
           <div className={`${styles.kpiValue} ${styles.kpiValueGreen}`}>{completionRate}%</div>
         </Card>
-
         <Card elevation={Elevation.TWO} className={styles.kpiCard}>
           <H4 className={styles.kpiLabel}>{t('boardHealth')}</H4>
           <div className={`${styles.kpiValue} ${completionRate > 70 ? styles.kpiValueGreen : styles.kpiValueOrange}`} style={{ fontSize: '1.5rem' }}>
             {completionRate > 70 ? t('healthExcellent') : t('healthImprovable')}
           </div>
         </Card>
-
         <Card elevation={Elevation.TWO} className={styles.kpiCard}>
           <H4 className={styles.kpiLabel}>{t('avgTime')}</H4>
           <div className={styles.kpiValue} style={{ fontSize: '1.2rem' }}>{timeDisplay}</div>
@@ -152,7 +149,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
           <div className={styles.chartContainer}>
             <StatusDonutChart
               data={chartData.filter(d => d.value > 0)}
-              onPieClick={handleChartEvent} //  Keeps click navigation
+              onPieClick={handleChartEvent}
               height="100%"
             />
           </div>
@@ -171,15 +168,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
                   content={<CustomTooltip />}
                   cursor={{ fill: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
                 />
-                <Bar dataKey="value" radius={[4, 4, 0, 0]} onClick={handleChartEvent} style={{ cursor: 'pointer', outline: 'none' }}>
-                  {chartData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
-                </Bar>
+                <Bar 
+                  dataKey="value" 
+                  radius={[4, 4, 0, 0]} 
+                  onClick={(entry) => handleChartEvent(entry)} 
+                  style={{ cursor: 'pointer', outline: 'none' }}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </Card>
 
-        {/* Activity Trend (Line Chart) */}
+        {/* Activity Trend (Line Chart) */}    
         <Card elevation={Elevation.ONE} className={`${styles.chartCard} ${styles.chartCardFull}`}>
           <H3 className={styles.chartTitle}>
             <Icon icon="timeline-events" /> {t('recentActivity')}
