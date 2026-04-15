@@ -31,3 +31,4 @@ npm-debug.log*
 
 # Diagnostics (Repomix)
 repomix-output.xml
+*.pdf

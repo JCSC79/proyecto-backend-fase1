@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Spinner, NonIdealState, Button, Intent, Icon } from '@blueprintjs/core';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-
 import api from '../api/axiosInstance';
 import { Header } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
