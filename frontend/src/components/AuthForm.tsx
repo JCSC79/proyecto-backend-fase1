@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, InputGroup, FormGroup, Intent } from '@blueprintjs/core';
 import { useTranslation } from 'react-i18next';
-import styles from '../pages/RegisterPage.module.css'; // We reuse the styles for consistency
+import styles from '../pages/LoginRegisterPage.module.css'; // We reuse the styles for consistency
 
 /**
  * Interface defining the Props for our universal AuthForm.

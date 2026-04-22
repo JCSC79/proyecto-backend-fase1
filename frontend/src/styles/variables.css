@@ -39,16 +39,16 @@
   --color-warning:    #D9822B;
 
   /* Spacing scale */
-  --space-xs:         4px;
-  --space-sm:         8px;
-  --space-md:         16px;
-  --space-lg:         24px;
-  --space-xl:         40px;
+  --space-xs:         0.25rem;
+  --space-sm:         1.2rem;
+  --space-md:         1rem;
+  --space-lg:         2rem;
+  --space-xl:         3.2rem;
 
   /* Radius */
   --radius-sm:        4px;
   --radius-md:        8px;
-  --radius-lg:        12px;
+  --radius-lg:        0.8rem;
 
   /* Shadows */
   --shadow-sm:        0 1px 3px rgba(0, 0, 0, 0.08);
@@ -59,8 +59,10 @@
   --transition:       background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 
   /* Layout */
-  --max-width:        1400px;
-  --navbar-height:    84px;
+  /* --max-width:        1400px; */
+  --max-width:        100rem;
+  /* --navbar-height:    84px; */
+  --navbar-height:    5rem;
 }
 
 /* DARK THEME */

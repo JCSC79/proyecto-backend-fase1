@@ -22,7 +22,7 @@
 }
 
 .logo {
-  height: 56px;
+  height: 5rem;
   width: auto;
   margin-bottom: var(--space-md);
 }
@@ -36,10 +36,11 @@
 
 .subtitle {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1rem;
   color: var(--text-muted);
 }
 
+/* Common form styles for both pages */
 .form {
   display: flex;
   flex-direction: column;
@@ -84,11 +85,16 @@
 
 .switchLink {
   font-size: 0.85rem;
-  color: var(--color-primary);
+  color: var(--accent);
   text-decoration: none;
   font-weight: 500;
 }
 
 .switchLink:hover {
   text-decoration: underline;
+}
+
+/* Replacement for inline margin on flags */
+.flagIcon {
+  margin-right: var(--space-sm);
 }

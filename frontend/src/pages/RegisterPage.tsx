@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { Button } from '@blueprintjs/core';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth.ts'; // Updated import path for the custom hook
-import AuthForm from '../components/AuthForm'; // New modular component
-import styles from './RegisterPage.module.css';
+import { useAuth } from '../hooks/useAuth.ts';
+import AuthForm from '../components/AuthForm';
+import styles from './LoginRegisterPage.module.css'; // Using the unified styles
 import logoImg from '../assets/Logo.png';
 
 interface ApiError {
-  response?: { data?: { error?: string | string[] }; status?: number; };
+  response?: { data?: { error?: string | string[] }; status?: number };
 }
 
 const RegisterPage: React.FC = () => {
@@ -17,7 +17,7 @@ const RegisterPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleRegister = async (data: { email: string; password: string; name?: string }) => {
+  const handleRegister = async (data: { email: string; password: string; name?: string }): Promise<void> => {
     setError(null);
     setIsLoading(true);
     try {
@@ -27,7 +27,6 @@ const RegisterPage: React.FC = () => {
       const status = serverError.response?.status;
       const serverMessage = serverError.response?.data?.error;
 
-      // Handle Yup validation errors from server
       if (status === 400 && serverMessage) {
         setError(Array.isArray(serverMessage) ? t(serverMessage[0]) : t(serverMessage));
       } else if (status === 409) {
@@ -40,28 +39,42 @@ const RegisterPage: React.FC = () => {
     }
   };
 
+  const toggleLanguage = (): void => {
+    i18n.changeLanguage(i18n.language.startsWith('es') ? 'en' : 'es');
+  };
+
   return (
     <div className={styles.pageWrapper}>
       <div className={styles.card}>
-        <div className={styles.header}>
+        <header className={styles.header}>
           <img src={logoImg} alt="logo" className={styles.logo} />
           <h1 className={styles.title}>{t('appName')}</h1>
           <p className={styles.subtitle}>{t('registerSubtitle')}</p>
-        </div>
+        </header>
 
         {error && <div className={styles.errorBanner}>{error}</div>}
 
-        {/* Modular form component to keep the page clean */}
+        {/* Reusable AuthForm for Registration mode */}
         <AuthForm mode="register" onSubmit={handleRegister} isLoading={isLoading} />
 
-        <div className={styles.footer}>
-          <Link to="/login" className={styles.switchLink}>{t('loginLink')}</Link>
-          <Button variant="minimal" size="small" onClick={() => i18n.changeLanguage(i18n.language.startsWith('es') ? 'en' : 'es')}>
-            {i18n.language.startsWith('es')
-              ? <><span className="fi fi-es" style={{ marginRight: 5 }} />Español</>
-              : <><span className="fi fi-gb" style={{ marginRight: 5 }} />English</>}
+        <footer className={styles.footer}>
+          <Link to="/login" className={styles.switchLink}>
+            {t('loginLink')}
+          </Link>
+          <Button variant="minimal" size="small" onClick={toggleLanguage}>
+            {i18n.language.startsWith('es') ? (
+              <>
+                <span className={`fi fi-es ${styles.flagIcon}`} />
+                Español
+              </>
+            ) : (
+              <>
+                <span className={`fi fi-gb ${styles.flagIcon}`} />
+                English
+              </>
+            )}
           </Button>
-        </div>
+        </footer>
       </div>
     </div>
   );

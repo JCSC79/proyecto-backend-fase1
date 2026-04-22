@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Button, InputGroup, FormGroup, Intent } from '@blueprintjs/core';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth.ts'; // Updated import path for the custom hook
-import styles from './LoginPage.module.css';
+import { useAuth } from '../hooks/useAuth.ts';
+import styles from './LoginRegisterPage.module.css'; // Using the unified styles
 import logoImg from '../assets/Logo.png';
 
 const LoginPage: React.FC = () => {
@@ -16,11 +16,11 @@ const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const toggleLanguage = () => {
+  const toggleLanguage = (): void => {
     i18n.changeLanguage(i18n.language.startsWith('es') ? 'en' : 'es');
   };
 
-  const handleSubmit = async (e: React.SubmitEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setError(null);
 
@@ -32,13 +32,11 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
     try {
       await login(email.trim(), password);
-      // AppRouter will automatically redirect to / once isAuthenticated becomes true
     } catch {
       setError(t('loginError'));
     } finally {
       setIsLoading(false);
     }
-
   };
 
   const lockButton = (
@@ -53,18 +51,14 @@ const LoginPage: React.FC = () => {
   return (
     <div className={styles.pageWrapper}>
       <div className={styles.card}>
-
-        {/* Header */}
-        <div className={styles.header}>
+        <header className={styles.header}>
           <img src={logoImg} alt="logo" className={styles.logo} />
           <h1 className={styles.title}>{t('appName')}</h1>
           <p className={styles.subtitle}>{t('loginSubtitle')}</p>
-        </div>
+        </header>
 
-        {/* Error banner */}
         {error && <div className={styles.errorBanner}>{error}</div>}
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className={styles.form} noValidate>
           <FormGroup>
             <label className={styles.fieldLabel} htmlFor="email">
@@ -110,18 +104,24 @@ const LoginPage: React.FC = () => {
           />
         </form>
 
-        {/* Footer / language switcher */}
-        <div className={styles.footer}>
+        <footer className={styles.footer}>
           <Link to="/register" className={styles.switchLink}>
             {t('registerLink')}
           </Link>
           <Button variant="minimal" size="small" onClick={toggleLanguage}>
-            {i18n.language.startsWith('es')
-              ? <><span className="fi fi-es" style={{ marginRight: 5 }} />Español</>
-              : <><span className="fi fi-gb" style={{ marginRight: 5 }} />English</>}
+            {i18n.language.startsWith('es') ? (
+              <>
+                <span className={`fi fi-es ${styles.flagIcon}`} />
+                Español
+              </>
+            ) : (
+              <>
+                <span className={`fi fi-gb ${styles.flagIcon}`} />
+                English
+              </>
+            )}
           </Button>
-        </div>
-
+        </footer>
       </div>
     </div>
   );
