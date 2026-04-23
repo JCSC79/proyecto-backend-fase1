@@ -11,6 +11,11 @@ const router = Router();
 router.post('/login', (req, res) => authController.login(req, res));
 router.post('/register', (req, res) => authController.register(req, res));
 
+/**
+ * FIX: Added logout route to clear the HttpOnly cookie
+ */
+router.post('/logout', (req, res) => authController.logout(req, res));
+
 // Protected route: requires a valid JWT token
 router.patch('/me', authenticateToken, (req, res) => authController.updateMe(req, res));
 

@@ -4,108 +4,253 @@
   background-color: var(--bg-surface);
   border-bottom: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
-  transition: var(--transition);
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .branding {
   display: flex;
   align-items: center;
-  margin-right: var(--space-md);
+  cursor: pointer;
+  transition: opacity 0.2s;
+  height: 100%;
+}
+
+.branding:hover {
+  opacity: 0.8;
 }
 
 .logo {
-  height: 50px;
-  width: auto;
+  height: 2.5rem;
+  width: 2.5rem;
   margin-right: var(--space-sm);
 }
 
 .appName {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-main);
+  letter-spacing: 0.5px;
 }
 
-.navGroup {
-  width: 100%;
-}
-
-.viewSwitcher {
+/* AVATAR STYLES */
+.avatarBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
   display: flex;
-  gap: var(--space-sm);
-  margin-left: var(--space-sm);
-  margin-right: auto;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+  height: 2.5rem; 
+}
+
+.avatarBtn:hover {
+  transform: scale(1.1);
+}
+
+.avatar {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent);
+  box-sizing: border-box;
+}
+
+.avatarLarge {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--accent);
+  margin-bottom: var(--space-sm);
+}
+
+/* DESKTOP LAYOUT */
+.desktopOnly {
+  display: flex !important;
+  align-items: center;
+  height: 100%;
+  gap: var(--space-md);
+}
+
+.navButtonsContainer {
+  display: flex;
+  gap: var(--space-xs);
 }
 
 .progressSection {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  margin-right: var(--space-lg);
 }
 
 .progressLabel {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 700;
   color: var(--text-muted);
+  white-space: nowrap; /* Ensures percentage doesn't wrap alone */
+}
+
+/* Hide the "Progress" label if screen is between 992px and 1200px to save space */
+@media (max-width: 1200px) {
+  .progressTextDesktop {
+    display: none;
+  }
+}
+
+.desktopProgressBar {
+  width: 80px;
+}
+
+.desktopUserActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* FIXED: Logic to prevent language button from stacking flag and text */
+.langButtonContent {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   white-space: nowrap;
 }
 
-.progressBar {
-  width: 120px;
-}
-
-.settingsSection {
+.userInfoDesktop {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
-  margin-left: var(--space-sm);
+  gap: var(--space-sm);
+  margin-right: var(--space-xs);
 }
 
-.userInfo {
+.userNameDesktop {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-main);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* MOBILE LAYOUT */
+.mobileMenuBtn {
+  display: none;
+  height: 100%;
+}
+
+.mobileTriggerWrapper {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
-  font-size: 0.85rem;
-  color: var(--text-muted);
+  height: 100%;
+  gap: var(--space-sm);
 }
 
-.avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--border);
-  flex-shrink: 0;
-  display: block;
+.menuToggle {
+  height: 2.5rem !important;
+  width: 2.5rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
-.avatarBtn {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  border-radius: 50%;
+.menuToggle :global(.bp6-icon) {
+  transform: scale(1.4);
+}
+
+.flagIcon {
+  margin-right: 2px;
+}
+
+.customDrawer {
+  max-width: 85vw !important;
+  background-color: var(--bg-surface) !important;
+}
+
+/* RESPONSIVE LOGIC */
+@media (max-width: 992px) {
+  .desktopOnly {
+    display: none !important;
+  }
+  .mobileMenuBtn {
+    display: flex !important;
+    align-items: center;
+  }
+
+  .navbar {
+    height: 4rem !important;
+    padding: 0 var(--space-sm) !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .appName {
+    display: none;
+  }
+}
+
+/* DRAWER STYLES */
+.mobileMenuContent {
+  padding: var(--space-xl) var(--space-lg);
   display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: var(--space-lg);
+  overflow-y: auto;
+  max-height: calc(100vh - 60px);
+}
+
+.mobileMenuContent .navButtonsContainer {
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobileMenuContent :global(.bp6-button) {
+  justify-content: flex-start;
+  padding-left: var(--space-md);
+  min-height: 48px;
+}
+
+.mobileUserInfo {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-  flex-shrink: 0;
+  text-align: center;
+  padding: var(--space-lg);
+  background-color: var(--bg-surface-alt);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-xs);
 }
 
-.avatarBtn:hover {
-  opacity: 0.8;
-  transform: scale(1.06);
-}
-
-.avatarBtn:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+.userName {
+  margin: 0;
+  color: var(--text-main);
 }
 
 .userRole {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--accent);
+  font-size: 0.75rem;
   font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.editProfileBtn {
+  margin-top: 12px !important;
+}
+
+.drawerSettings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.logoutWrapper {
+  margin-top: auto;
+  padding-top: var(--space-md);
+  padding-bottom: var(--space-xl);
 }

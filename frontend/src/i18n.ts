@@ -135,6 +135,8 @@ i18n
           "err_desc_required": "Description is required",
           "err_desc_short": "Description must be at least 10 characters",
           "err_status_invalid": "Invalid status value",
+          "theme": "Theme",
+          "logout": "Logout",
         }
       },
       es: {
@@ -265,6 +267,8 @@ i18n
           "err_desc_required": "La descripción es obligatoria",
           "err_desc_short": "La descripción debe tener al menos 10 caracteres",
           "err_status_invalid": "Estado no válido",
+          "theme": "Tema",
+          "logout": "Cerrar Sesión",
         }
       }
     },

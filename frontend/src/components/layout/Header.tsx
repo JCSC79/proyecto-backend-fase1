@@ -1,201 +1,267 @@
 import React, { useEffect, useState } from 'react';
-import { Navbar, ProgressBar, Button, Alignment, Dialog, DialogBody, DialogFooter, InputGroup, FormGroup, Intent } from '@blueprintjs/core';
+import {
+  Navbar,
+  ProgressBar,
+  Button,
+  Alignment,
+  Drawer,
+  Divider,
+  Position
+} from '@blueprintjs/core';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../hooks/useTheme.ts';
 import { useAuth } from '../../hooks/useAuth.ts';
 import { gravatarUrl } from '../../utils/gravatar';
-import { AppToaster } from '../../utils/toaster';
 import logoImg from '../../assets/Logo.png';
+import { EditProfileDialog } from './EditProfileDialog';
 import styles from './Header.module.css';
 
 type ViewMode = 'home' | 'dashboard';
 
-interface HeaderProps {
+interface NavProps {
+  activeView: string;
+  setActiveView: (view: ViewMode) => void;
+  setIsMenuOpen: (open: boolean) => void;
+  isAdmin: boolean;
+  t: (key: string) => string;
+  navigate: (path: string) => void;
+}
+
+/**
+ * Navigation buttons component for reuse in Desktop and Mobile views
+ */
+const NavigationButtons: React.FC<NavProps> = ({
+  activeView,
+  setActiveView,
+  setIsMenuOpen,
+  isAdmin,
+  t,
+  navigate
+}) => (
+  <div className={styles.navButtonsContainer}>
+    <Button
+      variant="minimal"
+      icon="home"
+      text={t('home')}
+      active={activeView === 'home'}
+      onClick={() => {
+        setActiveView('home');
+        navigate('/');
+        setIsMenuOpen(false);
+      }}
+    />
+    <Button
+      variant="minimal"
+      icon="dashboard"
+      text={t('dashboard')}
+      active={activeView === 'dashboard'}
+      onClick={() => {
+        setActiveView('dashboard');
+        setIsMenuOpen(false);
+      }}
+    />
+    {isAdmin && (
+      <Button
+        variant="minimal"
+        icon="shield"
+        text={t('adminPanel')}
+        intent="warning"
+        onClick={() => {
+          navigate('/admin');
+          setIsMenuOpen(false);
+        }}
+      />
+    )}
+  </div>
+);
+
+export const Header: React.FC<{
   progress: number;
   activeView: ViewMode | 'admin';
   setActiveView: (view: ViewMode) => void;
   showProgress?: boolean;
-}
-
-export const Header: React.FC<HeaderProps> = ({
-  progress,
-  activeView,
-  setActiveView,
-  showProgress = true }) => {
+}> = ({ progress, activeView, setActiveView, showProgress = true }) => {
   const { t, i18n } = useTranslation();
   const { isDark, toggleTheme } = useTheme();
-  const { user, isAdmin, logout, updateName } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
-  const percentage = Math.round(progress * 100);
 
   const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [nameInput, setNameInput] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const percentage = Math.round(progress * 100);
 
   useEffect(() => {
     if (user?.email) {
-      gravatarUrl(user.email, 36).then(setAvatarSrc);
-    } else {
-      setAvatarSrc(null);
+      gravatarUrl(user.email, 80).then(setAvatarSrc);
     }
   }, [user?.email]);
 
-  const toggleLanguage = () => {
+  const toggleLanguage = (): void => {
     i18n.changeLanguage(i18n.language.startsWith('es') ? 'en' : 'es');
   };
 
-  const openEdit = () => {
-    setNameInput(user?.name ?? '');
-    setIsEditOpen(true);
-  };
-
-  const handleSaveName = async () => {
-    if (!nameInput.trim()) {
-      return;
-    }
-    setIsSaving(true);
-    try {
-      await updateName(nameInput.trim());
-      setIsEditOpen(false);
-      AppToaster.show({ message: t('editProfileSuccess'), intent: Intent.SUCCESS });
-    } catch {
-      AppToaster.show({ message: t('loginError'), intent: Intent.DANGER });
-    } finally {
-      setIsSaving(false);
-    }
+  const handleBrandingClick = (): void => {
+    setActiveView('home');
+    navigate('/');
   };
 
   return (
     <Navbar className={styles.navbar}>
-      <Navbar.Group align={Alignment.LEFT} className={styles.navGroup}>
-
-        {/* Branding */}
-        <div className={styles.branding}>
-          <img src={logoImg} alt="App Logo" className={styles.logo} />
-          <Navbar.Heading>
-            <span className={styles.appName}>{t('appName')}</span>
-          </Navbar.Heading>
+      <Navbar.Group align={Alignment.START}>
+        <div className={styles.branding} onClick={handleBrandingClick}>
+          <img src={logoImg} alt="Logo" className={styles.logo} />
+          <span className={styles.appName}>{t('appName')}</span>
         </div>
+      </Navbar.Group>
 
-        <Navbar.Divider />
-
-        {/* View switcher */}
-        <div className={styles.viewSwitcher}>
-          <Button
-            variant="minimal"
-            icon="home"
-            text={t('home')}
-            active={activeView === 'home'}
-            onClick={() => setActiveView('home')}
-            size="large"          />
-          <Button
-            variant="minimal"
-            icon="dashboard"
-            text={t('dashboard')}
-            active={activeView === 'dashboard'}
-            onClick={() => setActiveView('dashboard')}
-            size="large"
-          />
-          {isAdmin && (
-            <Button
-              variant="minimal"
-              icon="shield"
-              text={t('adminPanel')}
-              intent="warning"
-              onClick={() => navigate('/admin')}
-              size="large"
-            />
-          )}
-        </div>
-
-        {/* Progress */}
+      {/* DESKTOP VIEW */}
+      <Navbar.Group align={Alignment.END} className={styles.desktopOnly}>
+        <NavigationButtons
+          activeView={activeView}
+          setActiveView={setActiveView}
+          setIsMenuOpen={setIsMenuOpen}
+          isAdmin={isAdmin}
+          t={t}
+          navigate={navigate}
+        />
+        
+        <Divider />
+        
         {showProgress && (
           <div className={styles.progressSection}>
+            {/* Added descriptive text to percentage */}
             <span className={styles.progressLabel}>
-              {t('progress')}: {percentage}%
+              <span className={styles.progressTextDesktop}>{t('progress')}: </span>
+              {percentage}%
             </span>
             <ProgressBar
-              className={styles.progressBar}
-              intent={percentage === 100 ? 'success' : 'primary'}
+              intent={progress === 1 ? 'success' : 'primary'}
               value={progress}
               stripes={false}
               animate={false}
+              className={styles.desktopProgressBar}
             />
           </div>
         )}
-        <Navbar.Divider />
 
-        {/* User info + controls */}
-        <div className={styles.settingsSection}>
-          {user && (
-            <div className={styles.userInfo}>
-              <button
-                className={styles.avatarBtn}
-                onClick={openEdit}
-                aria-label={t('editProfileTitle')}
-                title={t('editProfileTitle')}
-              >
-                {avatarSrc && (
-                  <img
-                    src={avatarSrc}
-                    alt={user.name ?? user.email}
-                    className={styles.avatar}
-                  />
-                )}
-              </button>
-              <span>{user.name ?? user.email}</span>
-              <span className={styles.userRole}>{isAdmin ? 'Admin' : 'User'}</span>
+        <Divider />
+
+        <div className={styles.desktopUserActions}>
+          <Button variant="minimal" icon={isDark ? 'flash' : 'moon'} onClick={toggleTheme} />
+          
+          <Button variant="minimal" onClick={toggleLanguage} className={styles.langButton}>
+            {/* Wrapper to ensure horizontal alignment of flag and text */}
+            <div className={styles.langButtonContent}>
+              <span className={`fi fi-${i18n.language.startsWith('es') ? 'es' : 'gb'} ${styles.flagIcon}`} />
+              <span>{i18n.language.startsWith('es') ? 'ES' : 'EN'}</span>
             </div>
-          )}
-          <Button variant="minimal" icon={isDark ? 'flash' : 'moon'} onClick={toggleTheme} size="large" />
-          <Button variant="minimal" onClick={toggleLanguage} size="large">
-            {i18n.language.startsWith('es')
-              ? <><span className="fi fi-es" style={{ marginRight: 6 }} />ES</>
-              : <><span className="fi fi-gb" style={{ marginRight: 6 }} />EN</>}
           </Button>
-          {user && <Button variant="minimal" icon="log-out" onClick={logout} size="large" />}
-        </div>
+          
+          <Divider />
 
+          <div className={styles.userInfoDesktop}>
+            <span className={styles.userNameDesktop}>{user?.name || user?.email}</span>
+            <button className={styles.avatarBtn} onClick={() => setIsEditOpen(true)} title={t('editProfileTitle')}>
+              {avatarSrc && <img src={avatarSrc} className={styles.avatar} alt="User" />}
+            </button>
+          </div>
+
+          <Button variant="minimal" icon="log-out" onClick={logout} />
+        </div>
       </Navbar.Group>
 
-      {/* Edit profile dialog */}
-      <Dialog
+      {/* MOBILE TRIGGER VIEW */}
+      <Navbar.Group align={Alignment.END} className={styles.mobileMenuBtn}>
+        <div className={styles.mobileTriggerWrapper}>
+          <button className={styles.avatarBtn} onClick={() => setIsEditOpen(true)}>
+            {avatarSrc && <img src={avatarSrc} className={styles.avatar} alt="User" />}
+          </button>
+          <Button
+            variant="minimal"
+            icon="menu"
+            onClick={() => setIsMenuOpen(true)}
+            className={styles.menuToggle}
+          />
+        </div>
+      </Navbar.Group>
+
+      {/* MOBILE DRAWER */}
+      <Drawer
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        title={t('appName')}
+        icon="menu"
+        position={Position.RIGHT}
+        size="320px"
+        className={styles.customDrawer}
+      >
+        <div className={styles.mobileMenuContent}>
+          <div className={styles.mobileUserInfo}>
+            {avatarSrc && <img src={avatarSrc} className={styles.avatarLarge} alt="User" />}
+            <h3 className={styles.userName}>{user?.name || user?.email}</h3>
+            <span className={styles.userRole}>{isAdmin ? 'Admin' : 'User'}</span>
+            <Button
+              variant="minimal"
+              icon="edit"
+              text={t('editProfileTitle')}
+              onClick={() => {
+                setIsMenuOpen(false);
+                setIsEditOpen(true);
+              }}
+              className={styles.editProfileBtn}
+            />
+          </div>
+
+          <NavigationButtons
+            activeView={activeView}
+            setActiveView={setActiveView}
+            setIsMenuOpen={setIsMenuOpen}
+            isAdmin={isAdmin}
+            t={t}
+            navigate={navigate}
+          />
+
+          <Divider />
+
+          <div className={styles.drawerSettings}>
+            <Button
+              size="large"
+              fill
+              icon={isDark ? 'flash' : 'moon'}
+              text={t('theme')}
+              onClick={toggleTheme}
+            />
+            <Button
+              size="large"
+              fill
+              onClick={toggleLanguage}
+              icon="translate"
+              text={i18n.language.startsWith('es') ? 'English' : 'Español'}
+            />
+          </div>
+
+          <Divider />
+          
+          <div className={styles.logoutWrapper}>
+            <Button
+              size="large"
+              fill
+              intent="danger"
+              icon="log-out"
+              text={t('logout') || 'Logout'}
+              onClick={logout}
+            />
+          </div>
+        </div>
+      </Drawer>
+
+      <EditProfileDialog
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
-        title={t('editProfileTitle')}
-        style={{ width: 360 }}
-      >
-        <DialogBody>
-          <FormGroup label={t('editProfileName')} labelFor="editName">
-            <InputGroup
-              id="editName"
-              value={nameInput}
-              onChange={e => setNameInput(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); }}
-              size="large"
-              autoFocus
-            />
-          </FormGroup>
-        </DialogBody>
-        <DialogFooter
-          actions={
-            <>
-              <Button onClick={() => setIsEditOpen(false)}>{t('cancel')}</Button>
-              <Button
-                intent={Intent.PRIMARY}
-                loading={isSaving}
-                onClick={handleSaveName}
-                disabled={!nameInput.trim()}
-              >
-                {t('editProfileSave')}
-              </Button>
-            </>
-          }
-        />
-      </Dialog>
-
+      />
     </Navbar>
   );
 };
