@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Spinner, NonIdealState, Button, Intent, Icon } from '@blueprintjs/core';
+import { Spinner, NonIdealState, Button, Intent, Icon, Dialog, DialogBody } from '@blueprintjs/core';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosInstance';
@@ -10,7 +10,8 @@ import { TaskFilters } from '../components/tasks/TaskFilters';
 import { TaskForm } from '../components/tasks/TaskForm';
 import { TaskBoard } from '../components/tasks/TaskBoard';
 import type { Task, TaskStatus } from '../types/task';
-import styles from './pages.module.css';
+import pageStyles from './pages.module.css';
+import formStyles from '../components/tasks/TaskForm.module.css';
 
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
@@ -18,6 +19,7 @@ const HomePage: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'ALL'>('ALL');
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const { data: tasks, isLoading, isError, error, refetch } = useQuery<Task[]>({
     queryKey: ['tasks'],
@@ -45,16 +47,16 @@ const HomePage: React.FC = () => {
   const progressValue = total > 0 ? completed / total : 0;
 
   return (
-    <div className={styles.wrapper}>
+    <div className={pageStyles.wrapper}>
       <Header
         progress={progressValue}
         activeView="home"
         setActiveView={(view) => view === 'dashboard' && navigate('/dashboard')}
       />
 
-      <main className={styles.main}>
+      <main className={pageStyles.main}>
         {isError && (
-          <div className={styles.errorWrapper}>
+          <div className={pageStyles.errorWrapper}>
             <NonIdealState
               icon={<Icon icon="warning-sign" size={60} intent={Intent.DANGER} />}
               title={t('errorTitle')}
@@ -76,12 +78,11 @@ const HomePage: React.FC = () => {
               statusFilter={statusFilter}
               setStatusFilter={setStatusFilter}
             />
-            <TaskForm />
 
             {isLoading ? (
-              <div className={styles.loadingState}>
+              <div className={pageStyles.loadingState}>
                 <Spinner size={50} intent={Intent.PRIMARY} />
-                <div className={styles.loadingLabel}>{t('syncing')}</div>
+                <div className={pageStyles.loadingLabel}>{t('syncing')}</div>
               </div>
             ) : (
               <TaskBoard tasks={filteredTasks} statusFilter={statusFilter} />
@@ -89,6 +90,30 @@ const HomePage: React.FC = () => {
           </>
         )}
       </main>
+
+      {/* Floating Action Button - FAB */}
+      <div className={formStyles.fabContainer}>
+        <Button
+          className={formStyles.fab}
+          intent={Intent.PRIMARY}
+          icon={<Icon icon="add" size={25} />}
+          onClick={() => setIsFormOpen(true)}
+          title={t('createTask')}
+        />
+      </div>
+
+      {/* Create Task Modal */}
+      <Dialog
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        title={t('createTask')}
+        icon="add"
+        style={{ width: '450px', maxWidth: '95vw' }}
+      >
+        <DialogBody>
+          <TaskForm onSuccess={() => setIsFormOpen(false)} />
+        </DialogBody>
+      </Dialog>
 
       <Footer />
     </div>
