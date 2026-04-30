@@ -22,6 +22,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
   const labelColor = isDark ? '#a7b6c2' : '#5c7080';
   const gridColor = isDark ? '#394b59' : '#dbe3e8';
 
+  // Derived KPI counters — recalculated only when tasks array changes
   const stats = useMemo(() => {
     const total = tasks.length;
     const completed = tasks.filter(t => t.status === 'COMPLETED').length;
@@ -31,16 +32,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
     return { total, completed, pending, inProgress, rate };
   }, [tasks]);
 
-  /**
-   * Data Mapping without Cell
-   * Recharts Bar and Pie look for the 'fill' property in each data object.
-   */
+  // Chart data — 'fill' drives color in both PieChart and BarChart without needing <Cell> wrappers
   const chartData: ChartDataPoint[] = [
     { name: t('pending'), value: stats.pending, status: 'PENDING' as TaskStatus, fill: '#D9822B' },
     { name: t('inProgress'), value: stats.inProgress, status: 'IN_PROGRESS' as TaskStatus, fill: '#2B95D9' },
     { name: t('completed'), value: stats.completed, status: 'COMPLETED' as TaskStatus, fill: '#0F9960' },
   ];
 
+  // Activity trend — counts tasks created per day over the last 7 days, oldest first
   const activityData = useMemo(() => {
     return [...Array(7)].map((_, i) => {
       const d = new Date();
@@ -97,7 +96,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
         <Card elevation={Elevation.ONE} className={styles.chartCard}>
           <H4 className={styles.chartTitle}>{t('workloadTitle')}</H4>
           <div className={styles.chartContainer}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={300}>
               <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: labelColor, fontSize: 11 }} />
@@ -127,7 +126,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
             <Icon icon="timeline-events" /> {t('recentActivity')}
           </H4>
           <div className={styles.chartContainer}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={260}>
               <LineChart data={activityData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
                 <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: labelColor, fontSize: 11 }} />

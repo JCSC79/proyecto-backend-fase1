@@ -3,7 +3,7 @@
   padding-bottom: var(--space-xl);
   display: flex;
   flex-direction: column;
-  gap: var(--space-md); /* Espacio reducido como en HomePage */
+  gap: var(--space-md); /* Vertical rhythm matches HomePage */
 }
 
 .pageTitle {
@@ -14,7 +14,7 @@
   margin-bottom: var(--space-xs);
 }
 
-/* KPI GRID: Se adapta de 4 a 2 a 1 columna */
+/* KPI GRID: collapses 4 → 2 → 1 column at responsive breakpoints */
 .kpiGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -55,7 +55,7 @@
   color: var(--status-pending); 
 }
 
-/* CHARTS GRID: Alineado con los KPIs */
+/* CHARTS GRID: two equal columns, spans full width below KPI strip */
 .chartsGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -67,28 +67,29 @@
   padding: var(--space-lg);
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
-  height: 400px; /* Altura fija necesaria para evitar errores de consola */
-  display: flex;
-  flex-direction: column;
 }
 
 .chartCardFull {
   grid-column: 1 / -1;
-  height: 350px;
 }
 
-/* Contenedor crítico para ResponsiveContainer */
+/*
+ * FIX: Explicit pixel heights on the chart wrapper.
+ * Recharts ResponsiveContainer uses a ResizeObserver that fires before the
+ * browser resolves flex/grid layouts, returning -1 on the first render.
+ * Setting a fixed px height here (and mirroring it on the ResponsiveContainer
+ * height prop in the TSX) bypasses that timing issue entirely.
+ */
 .chartContainer {
-  flex: 1;
   width: 100%;
-  /* min-height: 0; */
-  min-height: 200px;
-  position: relative;
-  /* New */
-  display: block;
+  height: 320px;
 }
 
-/* RESPONSIVE: Aquí es donde evitamos que se desalineen */
+.chartCardFull .chartContainer {
+  height: 280px;
+}
+
+/*Responsive Breakpoints */
 @media (max-width: 1200px) {
   .kpiGrid {
     grid-template-columns: repeat(2, 1fr);
@@ -98,8 +99,5 @@
 @media (max-width: 768px) {
   .chartsGrid, .kpiGrid {
     grid-template-columns: 1fr;
-  }
-  .chartCard {
-    height: 350px;
   }
 }

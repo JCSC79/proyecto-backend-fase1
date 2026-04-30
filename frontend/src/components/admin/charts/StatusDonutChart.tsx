@@ -19,7 +19,7 @@ export const StatusDonutChart: React.FC<StatusDonutChartProps> = ({ data, onPieC
   const { isDark } = useTheme();
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height={300}>
       <PieChart>
         <Pie
           data={data}
@@ -28,6 +28,7 @@ export const StatusDonutChart: React.FC<StatusDonutChartProps> = ({ data, onPieC
           paddingAngle={10}
           dataKey="value"
           stroke="none"
+          // Type-narrow the Recharts synthetic event before forwarding to parent
           onClick={(data: unknown) => {
             const entry = data as { payload: ChartDataPoint };
             if (entry?.payload) {
