@@ -36,6 +36,11 @@
   gap: var(--space-xs);
 }
 
+/* Reset BlueprintJS H5 margin inside column header */
+.columnTitle {
+  margin: 0;
+}
+
 .columnCount {
   font-size: 0.85rem;
   font-weight: 700;

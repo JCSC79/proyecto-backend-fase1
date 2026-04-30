@@ -20,8 +20,8 @@ export const UserManagementTable: React.FC<Props> = ({
   const { t } = useTranslation();
 
   const renderHeader = (label: string, col: SortColumn) => (
-    <th onClick={() => onSort(col)} style={{ cursor: 'pointer', userSelect: 'none' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+    <th className={styles.sortableTh} onClick={() => onSort(col)}>
+      <div className={styles.sortThContent}>
         {label}
         <Icon 
           icon={sort.column === col ? (sort.direction === 'asc' ? 'chevron-up' : 'chevron-down') : 'double-caret-vertical'} 
@@ -94,7 +94,7 @@ export const UserManagementTable: React.FC<Props> = ({
       {/* MOBILE: card list, hidden on desktop via CSS */}
       <div className={styles.mobileList}>
         {users.length === 0 ? (
-          <p style={{ textAlign: 'center', color: 'var(--text-subtle)', fontStyle: 'italic' }}>
+          <p className={styles.emptyMobileMsg}>
             {t('noResults')}
           </p>
         ) : (
@@ -114,27 +114,27 @@ export const UserManagementTable: React.FC<Props> = ({
               <div className={styles.mobileCardStats}>
                 <div>
                   <div className={styles.mobileCardStatLabel}>{t('pending')}</div>
-                  <div className={styles.mobileCardStatValue} style={{ color: 'var(--status-pending)' }}>
+                  <div className={`${styles.mobileCardStatValue} ${styles.mobileStatPending}`}>
                     {user.stats.pending}
                   </div>
                 </div>
                 <div>
                   <div className={styles.mobileCardStatLabel}>{t('inProgress')}</div>
-                  <div className={styles.mobileCardStatValue} style={{ color: 'var(--status-progress)' }}>
+                  <div className={`${styles.mobileCardStatValue} ${styles.mobileStatProgress}`}>
                     {user.stats.inProgress}
                   </div>
                 </div>
                 <div>
                   <div className={styles.mobileCardStatLabel}>{t('completed')}</div>
-                  <div className={styles.mobileCardStatValue} style={{ color: 'var(--status-done)' }}>
+                  <div className={`${styles.mobileCardStatValue} ${styles.mobileStatDone}`}>
                     {user.stats.completed}
                   </div>
                 </div>
               </div>
 
               <div className={styles.mobileCardFooter}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                <div className={styles.completionRateRow}>
+                  <span className={styles.completionRateLabel}>
                     {t('completionRate')}:
                   </span>
                   <strong>{user.stats.completionRate}%</strong>

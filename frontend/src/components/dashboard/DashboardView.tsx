@@ -5,10 +5,11 @@ import {
   ResponsiveContainer, LineChart, Line 
 } from 'recharts';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '../../hooks/useTheme'; 
-import { StatusDonutChart, type ChartDataPoint } from '../admin/charts/StatusDonutChart'; 
+import { useChartColors } from '../../hooks/useChartColors';
+import { StatusDonutChart, type ChartDataPoint } from '../admin/charts/StatusDonutChart';
 import type { Task, TaskStatus } from '../../types/task';
 import styles from './DashboardView.module.css';
+import { CHART_COLORS } from '../../styles/chartColors';
 
 interface DashboardViewProps {
   tasks: Task[];
@@ -17,10 +18,7 @@ interface DashboardViewProps {
 
 export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChartClick }) => {
   const { t } = useTranslation();
-  const { isDark } = useTheme();
-
-  const labelColor = isDark ? '#a7b6c2' : '#5c7080';
-  const gridColor = isDark ? '#394b59' : '#dbe3e8';
+  const { labelColor, gridColor, cursorFill } = useChartColors();
 
   // Derived KPI counters — recalculated only when tasks array changes
   const stats = useMemo(() => {
@@ -34,9 +32,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
 
   // Chart data — 'fill' drives color in both PieChart and BarChart without needing <Cell> wrappers
   const chartData: ChartDataPoint[] = [
-    { name: t('pending'), value: stats.pending, status: 'PENDING' as TaskStatus, fill: '#D9822B' },
-    { name: t('inProgress'), value: stats.inProgress, status: 'IN_PROGRESS' as TaskStatus, fill: '#2B95D9' },
-    { name: t('completed'), value: stats.completed, status: 'COMPLETED' as TaskStatus, fill: '#0F9960' },
+    { name: t('pending'), value: stats.pending, status: 'PENDING' as TaskStatus, fill: CHART_COLORS.pending },
+    { name: t('inProgress'), value: stats.inProgress, status: 'IN_PROGRESS' as TaskStatus, fill: CHART_COLORS.progress },
+    { name: t('completed'), value: stats.completed, status: 'COMPLETED' as TaskStatus, fill: CHART_COLORS.done },
   ];
 
   // Activity trend — counts tasks created per day over the last 7 days, oldest first
@@ -88,7 +86,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
           <div className={styles.chartContainer}>
             <StatusDonutChart 
               data={chartData.filter(d => d.value > 0)} 
-              onPieClick={(data) => onChartClick?.(data.status)}
+              onPieClick={(data) => data.status && onChartClick?.(data.status)}
             />
           </div>
         </Card>
@@ -102,15 +100,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: labelColor, fontSize: 11 }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: labelColor, fontSize: 11 }} />
                 <Tooltip 
-                  cursor={{ fill: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
-                  contentStyle={{ backgroundColor: isDark ? '#30404d' : '#fff', borderRadius: '8px', border: 'none' }}
+                  cursor={{ fill: cursorFill }}
+                  contentStyle={{ backgroundColor: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border)', color: 'var(--text-main)' }}
                 />
                 <Bar 
                   dataKey="value" 
                   radius={[4, 4, 0, 0]} 
                   onClick={(data: unknown) => {
                     const entry = data as { payload: ChartDataPoint };
-                    if (entry?.payload) {
+                    if (entry?.payload?.status) {
                       onChartClick?.(entry.payload.status);
                     }
                   }}
@@ -131,7 +129,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
                 <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: labelColor, fontSize: 11 }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: labelColor, fontSize: 11 }} allowDecimals={false} />
-                <Line type="monotone" dataKey="count" stroke="#2B95D9" strokeWidth={3} dot={{ r: 4, fill: '#2B95D9' }} />
+                <Line type="monotone" dataKey="count" stroke={CHART_COLORS.progress} strokeWidth={3} dot={{ r: 4, fill: CHART_COLORS.progress }} />
               </LineChart>
             </ResponsiveContainer>
           </div>

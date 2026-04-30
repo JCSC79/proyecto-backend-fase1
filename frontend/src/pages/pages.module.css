@@ -36,3 +36,9 @@
   background-color: rgba(194, 48, 48, 0.06);
   box-shadow: var(--shadow-md);
 }
+
+/* Create Task dialog sizing */
+.taskDialog {
+  width: 450px;
+  max-width: 95vw;
+}

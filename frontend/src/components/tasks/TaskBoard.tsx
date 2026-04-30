@@ -61,7 +61,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, statusFilter }) => 
       <div className={styles.column}>
         <div className={styles.columnHeader}>
           <div className={styles.headerInfo}>
-            <H5 style={{ margin: 0 }}>{t(labelKey)}</H5>
+            <H5 className={styles.columnTitle}>{t(labelKey)}</H5>
             <span className={styles.columnCount}>({columnTasks.length})</span>
           </div>
           <Button 

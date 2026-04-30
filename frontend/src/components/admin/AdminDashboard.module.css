@@ -314,6 +314,65 @@
   margin-left: auto;
 }
 
+/* Status colors for mobile stat values */
+.mobileStatPending  { color: var(--status-pending); }
+.mobileStatProgress { color: var(--status-progress); }
+.mobileStatDone     { color: var(--status-done); }
+
+/* Completion rate row inside mobile card footer */
+.completionRateRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.completionRateLabel {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Sortable table header cell */
+.sortableTh {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortThContent {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Error state text */
+.errorText {
+  color: var(--text-main);
+}
+
+/* Empty results message in mobile list */
+.emptyMobileMsg {
+  text-align: center;
+  color: var(--text-subtle);
+  font-style: italic;
+  padding: var(--space-md) 0;
+}
+
+/* Pagination controls row */
+.paginationWrapper {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Current page indicator button */
+.paginationPageBtn {
+  font-weight: bold;
+}
+
+/* When the button wraps to a new line, push it to the right */
+.mobileCardFooter > :last-child {
+  margin-left: auto;
+}
+
 /* Responsive Breakpoints */
 
 /* Tablet: KPI grid 4 → 2 columns */

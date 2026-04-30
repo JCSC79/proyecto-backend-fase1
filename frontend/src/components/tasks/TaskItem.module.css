@@ -87,3 +87,12 @@
 .newTaskHighlight {
   animation: highlight-fade 2s ease-out forwards;
 }
+
+/* Dialog detail header: title + status tag side by side */
+.dialogTitle {
+  margin: 0;
+}
+
+.statusTag {
+  text-transform: uppercase;
+}

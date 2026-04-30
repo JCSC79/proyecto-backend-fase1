@@ -8,16 +8,10 @@ import {
 import { useAdminDashboard } from '../../hooks/useAdminDashboard';
 import { UserDetailDialog } from './UserDetailDialog';
 import { UserManagementTable } from './UserManagementTable';
-import { useTheme } from '../../hooks/useTheme.ts';
+import { CHART_COLORS } from '../../styles/chartColors';
 import styles from './AdminDashboard.module.css';
 
-const COLOR_PENDING = '#D9822B';
-const COLOR_IN_PROGRESS = '#2B95D9';
-const COLOR_COMPLETED = '#0F9960';
-
 export const AdminDashboard: React.FC = () => {
-  const { isDark } = useTheme();
-  
   const {
     t, isLoading, isError, search, setSearch, roleFilter, setRoleFilter,
     currentPage, setCurrentPage, totalPages, paginatedUsers, sort, handleSort,
@@ -30,16 +24,16 @@ export const AdminDashboard: React.FC = () => {
   }
 
   if (isError) {
-    return <p style={{ color: 'var(--text-main)' }}>{t('errorMessage')}</p>;
+    return <p className={styles.errorText}>{t('errorMessage')}</p>;
   }
 
   /**
    * We use 'fill' instead of 'color' to comply with the modernized StatusDonutChart interface
    */
   const pieData: ChartDataPoint[] = [
-    { name: t('pending'), value: globalStats.pending, fill: COLOR_PENDING },
-    { name: t('inProgress'), value: globalStats.inProgress, fill: COLOR_IN_PROGRESS },
-    { name: t('completed'), value: globalStats.completed, fill: COLOR_COMPLETED },
+    { name: t('pending'), value: globalStats.pending, fill: CHART_COLORS.pending },
+    { name: t('inProgress'), value: globalStats.inProgress, fill: CHART_COLORS.progress },
+    { name: t('completed'), value: globalStats.completed, fill: CHART_COLORS.done },
   ].filter(d => d.value > 0);
 
   const barData = [...users]
@@ -88,8 +82,7 @@ export const AdminDashboard: React.FC = () => {
           <H3 className={styles.chartTitle}>{t('adminTasksPerUser')}</H3>
           <UserTasksBarChart 
             data={barData}
-            isDark={isDark}
-            colors={{ pending: COLOR_PENDING, inProgress: COLOR_IN_PROGRESS, completed: COLOR_COMPLETED }}
+            colors={{ pending: CHART_COLORS.pending, inProgress: CHART_COLORS.progress, completed: CHART_COLORS.done }}
             labels={{ pending: t('pending'), inProgress: t('inProgress'), completed: t('completed') }}
           />
         </Card>
@@ -126,10 +119,10 @@ export const AdminDashboard: React.FC = () => {
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
+          <div className={styles.paginationWrapper}>
             <ButtonGroup>
               <Button icon="chevron-left" disabled={currentPage === 1} onClick={() => setCurrentPage(prev => prev - 1)} />
-              <Button minimal disabled style={{ fontWeight: 'bold' }}>{t('page')} {currentPage} / {totalPages}</Button>
+              <Button minimal disabled className={styles.paginationPageBtn}>{t('page')} {currentPage} / {totalPages}</Button>
               <Button icon="chevron-right" disabled={currentPage === totalPages} onClick={() => setCurrentPage(prev => prev + 1)} />
             </ButtonGroup>
           </div>

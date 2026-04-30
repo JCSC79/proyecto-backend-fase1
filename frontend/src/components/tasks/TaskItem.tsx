@@ -142,8 +142,8 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
       >
         <div className={Classes.DIALOG_BODY}>
           <div className={styles.detailHeader}>
-            <H5 style={{ margin: 0 }}>{task.title}</H5>
-            <Tag intent={statusIntent} size="large" round style={{ textTransform: 'uppercase' }}>
+            <H5 className={styles.dialogTitle}>{task.title}</H5>
+            <Tag intent={statusIntent} size="large" round className={styles.statusTag}>
               {getTranslatedStatus(task.status)}
             </Tag>
           </div>

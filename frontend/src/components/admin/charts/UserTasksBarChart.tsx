@@ -3,6 +3,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import styles from '../AdminDashboard.module.css';
+import { useChartColors } from '../../../hooks/useChartColors';
 
 interface UserTasksBarChartProps {
   //  Define that 'data' is an array of objects with name and dynamic values for pending, inProgress, and completed tasks
@@ -20,14 +21,12 @@ interface UserTasksBarChartProps {
     inProgress: string;
     completed: string;
   };
-  isDark: boolean;
 }
 
 export const UserTasksBarChart: React.FC<UserTasksBarChartProps> = ({
-  data, colors, labels, isDark
+  data, colors, labels
 }) => {
-  const labelColor = isDark ? '#a7b6c2' : '#5c7080';
-  const gridColor = isDark ? '#394b59' : '#dbe3e8';
+  const { labelColor, gridColor, cursorFill } = useChartColors();
 
   return (
     <div className={styles.chartContainer}>
@@ -51,7 +50,7 @@ export const UserTasksBarChart: React.FC<UserTasksBarChartProps> = ({
             tick={{ fill: labelColor, fontSize: 11 }}
           />
           <Tooltip
-            cursor={{ fill: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
+            cursor={{ fill: cursorFill }}
             contentStyle={{
               backgroundColor: 'var(--bg-surface)',
               borderRadius: '8px',

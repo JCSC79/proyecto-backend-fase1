@@ -1,12 +1,11 @@
 import React from 'react';
 import { PieChart, Pie, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { useTheme } from '../../../hooks/useTheme';
 import type { TaskStatus } from '../../../types/task';
 
 export interface ChartDataPoint {
   name: string;
   value: number;
-  status: TaskStatus;
+  status?: TaskStatus; // Optional: only needed when onPieClick is used (DashboardView)
   fill: string;
 }
 
@@ -16,8 +15,6 @@ interface StatusDonutChartProps {
 }
 
 export const StatusDonutChart: React.FC<StatusDonutChartProps> = ({ data, onPieClick }) => {
-  const { isDark } = useTheme();
-
   return (
     <ResponsiveContainer width="100%" height={300}>
       <PieChart>
@@ -37,13 +34,13 @@ export const StatusDonutChart: React.FC<StatusDonutChartProps> = ({ data, onPieC
           }}
           style={{ cursor: 'pointer', outline: 'none' }}
         />
-        <Tooltip 
-          contentStyle={{ 
-            backgroundColor: isDark ? '#30404d' : '#fff', 
-            border: 'none', 
+        <Tooltip
+          contentStyle={{
+            backgroundColor: 'var(--bg-surface)',
             borderRadius: '8px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-          }} 
+            border: '1px solid var(--border)',
+            color: 'var(--text-main)'
+          }}
         />
         <Legend verticalAlign="bottom" height={6} />
       </PieChart>

@@ -108,7 +108,7 @@ const HomePage: React.FC = () => {
         onClose={() => setIsFormOpen(false)}
         title={t('createTask')}
         icon="add"
-        style={{ width: '450px', maxWidth: '95vw' }}
+        className={pageStyles.taskDialog}
       >
         <DialogBody>
           <TaskForm onSuccess={() => setIsFormOpen(false)} />
