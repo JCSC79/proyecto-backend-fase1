@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusDonutChart, type ChartDataPoint } from './charts/StatusDonutChart';
+import { StatusDonutChart } from './charts/StatusDonutChart';
 import { UserTasksBarChart } from './charts/UserTasksBarChart';
 import {
   Card, Elevation, H2, H3, H4, Icon, InputGroup,
@@ -9,6 +9,7 @@ import { useAdminDashboard } from '../../hooks/useAdminDashboard';
 import { UserDetailDialog } from './UserDetailDialog';
 import { UserManagementTable } from './UserManagementTable';
 import { CHART_COLORS } from '../../styles/chartColors';
+import { buildStatusChartData } from '../../utils/buildStatusChartData';
 import styles from './AdminDashboard.module.css';
 
 export const AdminDashboard: React.FC = () => {
@@ -27,14 +28,10 @@ export const AdminDashboard: React.FC = () => {
     return <p className={styles.errorText}>{t('errorMessage')}</p>;
   }
 
-  /**
-   * We use 'fill' instead of 'color' to comply with the modernized StatusDonutChart interface
-   */
-  const pieData: ChartDataPoint[] = [
-    { name: t('pending'), value: globalStats.pending, fill: CHART_COLORS.pending },
-    { name: t('inProgress'), value: globalStats.inProgress, fill: CHART_COLORS.progress },
-    { name: t('completed'), value: globalStats.completed, fill: CHART_COLORS.done },
-  ].filter(d => d.value > 0);
+  const pieData = buildStatusChartData(
+    { pending: globalStats.pending, inProgress: globalStats.inProgress, completed: globalStats.completed },
+    { pending: t('pending'), inProgress: t('inProgress'), completed: t('completed') }
+  ).filter(d => d.value > 0);
 
   const barData = [...users]
     .sort((a, b) => b.stats.total - a.stats.total)

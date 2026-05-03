@@ -10,6 +10,7 @@ import { StatusDonutChart, type ChartDataPoint } from '../admin/charts/StatusDon
 import type { Task, TaskStatus } from '../../types/task';
 import styles from './DashboardView.module.css';
 import { CHART_COLORS } from '../../styles/chartColors';
+import { buildStatusChartData } from '../../utils/buildStatusChartData';
 
 interface DashboardViewProps {
   tasks: Task[];
@@ -27,15 +28,33 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
     const pending = tasks.filter(t => t.status === 'PENDING').length;
     const inProgress = tasks.filter(t => t.status === 'IN_PROGRESS').length;
     const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
-    return { total, completed, pending, inProgress, rate };
+
+    // Avg completion time: createdAt → updatedAt for COMPLETED tasks
+    const completedWithDates = tasks.filter(
+      t => t.status === 'COMPLETED' && t.createdAt && t.updatedAt
+    );
+    let avgTime: string | null = null;
+    if (completedWithDates.length > 0) {
+      const totalMs = completedWithDates.reduce((sum, t) => {
+        return sum + (new Date(t.updatedAt!).getTime() - new Date(t.createdAt!).getTime());
+      }, 0);
+      const avgHours = totalMs / completedWithDates.length / 1000 / 3600;
+      if (avgHours < 24) {
+        avgTime = `${Math.round(avgHours)}h`;
+      } else {
+        avgTime = `${(avgHours / 24).toFixed(1)}d`;
+      }
+    }
+
+    return { total, completed, pending, inProgress, rate, avgTime };
   }, [tasks]);
 
-  // Chart data — 'fill' drives color in both PieChart and BarChart without needing <Cell> wrappers
-  const chartData: ChartDataPoint[] = [
-    { name: t('pending'), value: stats.pending, status: 'PENDING' as TaskStatus, fill: CHART_COLORS.pending },
-    { name: t('inProgress'), value: stats.inProgress, status: 'IN_PROGRESS' as TaskStatus, fill: CHART_COLORS.progress },
-    { name: t('completed'), value: stats.completed, status: 'COMPLETED' as TaskStatus, fill: CHART_COLORS.done },
-  ];
+  // Chart data — status→color mapping centralised in buildStatusChartData
+  const chartData = buildStatusChartData(
+    { pending: stats.pending, inProgress: stats.inProgress, completed: stats.completed },
+    { pending: t('pending'), inProgress: t('inProgress'), completed: t('completed') },
+    true  // withStatus = true: needed for onPieClick filtering
+  );
 
   // Activity trend — counts tasks created per day over the last 7 days, oldest first
   const activityData = useMemo(() => {
@@ -76,7 +95,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [], onChar
         </Card>
         <Card elevation={Elevation.ONE} className={styles.kpiCard}>
           <span className={styles.kpiLabel}>{t('avgTime')}</span>
-          <div className={styles.kpiValue}>{t('lessThanDay')}</div>
+          <div className={`${styles.kpiValue} ${stats.avgTime ? styles.kpiValueGreen : ''}`}>
+            {stats.avgTime ?? '—'}
+          </div>
         </Card>
       </div>
 

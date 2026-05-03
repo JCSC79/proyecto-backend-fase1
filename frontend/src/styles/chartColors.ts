@@ -9,7 +9,7 @@ const get = (v: string): string =>
   getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 
 export const CHART_COLORS = {
-  pending:  get('--status-pending'),   // #D9822B
-  progress: get('--status-progress'),  // #2B95D9
-  done:     get('--status-done'),      // #0F9960
-} as const;
+  get pending()  { return get('--status-pending');  },  // #D9822B
+  get progress() { return get('--status-progress'); },  // #2B95D9
+  get done()     { return get('--status-done');     },  // #0F9960
+};

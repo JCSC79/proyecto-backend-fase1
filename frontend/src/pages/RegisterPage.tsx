@@ -3,6 +3,7 @@ import { Button } from '@blueprintjs/core';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.ts';
+import { useLanguageToggle } from '../hooks/useLanguageToggle';
 import AuthForm from '../components/AuthForm';
 import styles from './LoginRegisterPage.module.css'; // Using the unified styles
 import logoImg from '../assets/Logo.png';
@@ -12,7 +13,8 @@ interface ApiError {
 }
 
 const RegisterPage: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { toggleLanguage, isSpanish } = useLanguageToggle();
   const { register } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,10 +41,6 @@ const RegisterPage: React.FC = () => {
     }
   };
 
-  const toggleLanguage = (): void => {
-    i18n.changeLanguage(i18n.language.startsWith('es') ? 'en' : 'es');
-  };
-
   return (
     <div className={styles.pageWrapper}>
       <div className={styles.card}>
@@ -62,7 +60,7 @@ const RegisterPage: React.FC = () => {
             {t('loginLink')}
           </Link>
           <Button variant="minimal" size="small" onClick={toggleLanguage}>
-            {i18n.language.startsWith('es') ? (
+            {isSpanish ? (
               <>
                 <span className={`fi fi-es ${styles.flagIcon}`} />
                 Español

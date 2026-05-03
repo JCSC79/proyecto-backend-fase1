@@ -15,6 +15,7 @@ import { useAuth } from '../../hooks/useAuth.ts';
 import { gravatarUrl } from '../../utils/gravatar';
 import logoImg from '../../assets/Logo.png';
 import { EditProfileDialog } from './EditProfileDialog';
+import { useLanguageToggle } from '../../hooks/useLanguageToggle';
 import styles from './Header.module.css';
 
 type ViewMode = 'home' | 'dashboard';
@@ -82,10 +83,11 @@ export const Header: React.FC<{
   setActiveView: (view: ViewMode) => void;
   showProgress?: boolean;
 }> = ({ progress, activeView, setActiveView, showProgress = true }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { isDark, toggleTheme } = useTheme();
   const { user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
+  const { toggleLanguage, isSpanish } = useLanguageToggle();
 
   const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -98,10 +100,6 @@ export const Header: React.FC<{
       gravatarUrl(user.email, 80).then(setAvatarSrc);
     }
   }, [user?.email]);
-
-  const toggleLanguage = (): void => {
-    i18n.changeLanguage(i18n.language.startsWith('es') ? 'en' : 'es');
-  };
 
   const handleBrandingClick = (): void => {
     setActiveView('home');
@@ -155,8 +153,8 @@ export const Header: React.FC<{
           <Button variant="minimal" onClick={toggleLanguage} className={styles.langButton}>
             {/* Wrapper to ensure horizontal alignment of flag and text */}
             <div className={styles.langButtonContent}>
-              <span className={`fi fi-${i18n.language.startsWith('es') ? 'es' : 'gb'} ${styles.flagIcon}`} />
-              <span>{i18n.language.startsWith('es') ? 'ES' : 'EN'}</span>
+              <span className={`fi fi-${isSpanish ? 'es' : 'gb'} ${styles.flagIcon}`} />
+              <span>{isSpanish ? 'ES' : 'EN'}</span>
             </div>
           </Button>
           
@@ -239,7 +237,7 @@ export const Header: React.FC<{
               fill
               onClick={toggleLanguage}
               icon="translate"
-              text={i18n.language.startsWith('es') ? 'English' : 'Español'}
+              text={isSpanish ? 'English' : 'Español'}
             />
           </div>
 
