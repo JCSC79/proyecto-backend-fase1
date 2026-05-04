@@ -81,7 +81,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
 
   const clearMutation = useMutation({
     mutationFn: async (): Promise<void> => {
-      await api.delete('/tasks');
+      await api.delete('/api/tasks');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });

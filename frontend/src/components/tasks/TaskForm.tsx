@@ -26,7 +26,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onSuccess }) => {
   const [description, setDescription] = useState('');
 
   const mutation = useMutation({
-    mutationFn: (newTask: { title: string; description: string }) => api.post('/tasks', newTask),
+    mutationFn: (newTask: { title: string; description: string }) => api.post('/api/tasks', newTask),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       AppToaster.show({ message: t('taskCreated'), intent: Intent.SUCCESS, icon: 'tick-circle' });

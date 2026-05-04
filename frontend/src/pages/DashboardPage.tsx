@@ -14,7 +14,7 @@ const DashboardPage: React.FC = () => {
   const { data: tasks } = useQuery<Task[]>({
     queryKey: ['tasks'],
     queryFn: async () => {
-      const response = await api.get('/tasks');
+      const response = await api.get('/api/tasks');
       return response.data as Task[];
     },
   });

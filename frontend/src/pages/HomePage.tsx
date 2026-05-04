@@ -33,7 +33,7 @@ const HomePage: React.FC = () => {
   const { data: tasks, isLoading, isError, error, refetch } = useQuery<Task[]>({
     queryKey: ['tasks'],
     queryFn: async () => {
-      const response = await api.get('/tasks');
+      const response = await api.get('/api/tasks');
       return response.data as Task[];
     },
   });

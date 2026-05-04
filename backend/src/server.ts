@@ -59,19 +59,19 @@ app.use('/api/auth/login', loginRateLimiter);
 app.use('/api/auth/register', registerRateLimiter);
 app.use('/api/auth', authRoutes);
 
-// 2. PROTECTED ROUTES (Token required for all /tasks endpoints)
+// 2. PROTECTED ROUTES (Token required for all /api/tasks endpoints)
 // This acts as a global guard for the task domain
-app.use('/tasks', authenticateToken); 
+app.use('/api/tasks', authenticateToken); 
 
-app.get('/tasks', (req, res) => taskController.getAll(req, res));
-app.post('/tasks', (req, res) => taskController.create(req, res));
+app.get('/api/tasks', (req, res) => taskController.getAll(req, res));
+app.post('/api/tasks', (req, res) => taskController.create(req, res));
 
 // Bulk operations (Defined before parameterized routes)
-app.delete('/tasks', (req, res) => taskController.deleteAll(req, res));
+app.delete('/api/tasks', (req, res) => taskController.deleteAll(req, res));
 
-app.get('/tasks/:id', (req, res) => taskController.getById(req, res));
-app.delete('/tasks/:id', (req, res) => taskController.delete(req, res));
-app.patch('/tasks/:id', (req, res) => taskController.update(req, res));
+app.get('/api/tasks/:id', (req, res) => taskController.getById(req, res));
+app.delete('/api/tasks/:id', (req, res) => taskController.delete(req, res));
+app.patch('/api/tasks/:id', (req, res) => taskController.update(req, res));
 
 // 3. ADMIN ROUTES (Token + Admin role required)
 app.use('/api/admin', authenticateToken, requireAdmin, adminRoutes);

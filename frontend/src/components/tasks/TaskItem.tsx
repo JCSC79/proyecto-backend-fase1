@@ -50,7 +50,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
 
 
   const updateMutation = useMutation({
-    mutationFn: (payload: Partial<Task>) => api.patch(`/tasks/${task.id}`, payload),
+    mutationFn: (payload: Partial<Task>) => api.patch(`/api/tasks/${task.id}`, payload),
     onSuccess: (_, payload) => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
 
@@ -70,7 +70,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
 
 
   const deleteMutation = useMutation({
-    mutationFn: () => api.delete(`/tasks/${task.id}`),
+    mutationFn: () => api.delete(`/api/tasks/${task.id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       // SUCCESS NOTIFICATION: Task removed
