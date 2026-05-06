@@ -81,12 +81,12 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
 
   const clearMutation = useMutation({
     mutationFn: async (): Promise<void> => {
-      await api.delete('/api/tasks');
+      await api.delete('/api/tasks', { params: { status: 'COMPLETED' } });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       AppToaster.show({ 
-        message: t('boardCleared'), 
+        message: t('completedCleared'), 
         intent: Intent.DANGER, 
         icon: 'trash' 
       });
@@ -110,6 +110,16 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             size="large"
+            rightElement={
+              searchTerm ? (
+                <Button
+                  icon="cross"
+                  variant="minimal"
+                  onClick={() => setSearchTerm('')}
+                  aria-label={t('clear')}
+                />
+              ) : undefined
+            }
           />
         </div>
 
@@ -154,9 +164,9 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
           </div>
 
           <Button 
-            icon="clean" 
+            icon="trash" 
             intent={Intent.DANGER} 
-            text={t('clearBoard')} 
+            text={t('clearCompleted')} 
             onClick={() => setIsAlertOpen(true)}
             size="large"
             className={styles.clearBtn}
@@ -166,7 +176,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
 
       <Alert
         cancelButtonText={t('cancel')}
-        confirmButtonText={t('clearBoard')}
+        confirmButtonText={t('clearCompleted')}
         icon="trash"
         intent={Intent.DANGER}
         isOpen={isAlertOpen}
@@ -174,7 +184,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
         onConfirm={() => clearMutation.mutate()}
         loading={clearMutation.isPending}
       >
-        <p>{t('clearBoardWarning')}</p>
+        <p>{t('clearCompletedWarning')}</p>
       </Alert>
     </Card>
   );

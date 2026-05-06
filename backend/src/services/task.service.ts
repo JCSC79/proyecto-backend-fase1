@@ -68,6 +68,11 @@ export class TaskService {
         return Result.ok(true);
     }
 
+    async deleteTasksByStatus(userId: string, status: string): Promise<Result<number>> {
+        const count = await this.dao.deleteByStatus(userId, status);
+        return Result.ok(count);
+    }
+
     async updateTask(id: string, userId: string, updates: Partial<ITask>): Promise<Result<ITask>> {
         const updatedTask = await this.dao.update(id, userId, { ...updates, updatedAt: new Date() });
         if (!updatedTask) {

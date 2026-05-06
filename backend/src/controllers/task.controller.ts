@@ -113,14 +113,28 @@ class TaskController {
   }
 
   /**
-   * Clears all tasks belonging to the requesting user.
+   * Clears tasks belonging to the requesting user.
+   * If ?status=COMPLETED (or other valid status) is provided, only those are deleted.
+   * Otherwise all user tasks are deleted.
    */
   async deleteAll(req: Request, res: Response): Promise<Response | void> {
     const authReq = req as AuthRequest;
-    const result = await taskService.deleteAllTasks(authReq.user!.id);
-    
-    if (result.isFailure) {
-      return res.status(500).json({ error: result.error });
+    const { status } = req.query;
+
+    if (status !== undefined) {
+      const validStatuses = ['PENDING', 'IN_PROGRESS', 'COMPLETED'];
+      if (!validStatuses.includes(status as string)) {
+        return res.status(400).json({ error: 'Invalid status value' });
+      }
+      const result = await taskService.deleteTasksByStatus(authReq.user!.id, status as string);
+      if (result.isFailure) {
+        return res.status(500).json({ error: result.error });
+      }
+    } else {
+      const result = await taskService.deleteAllTasks(authReq.user!.id);
+      if (result.isFailure) {
+        return res.status(500).json({ error: result.error });
+      }
     }
     res.status(204).send();
   }

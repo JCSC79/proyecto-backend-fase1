@@ -69,6 +69,13 @@ class TaskDAO {
     async deleteAll(userId: string): Promise<void> {
         await db('tasks').where({ userId }).del();
     }
+
+    /**
+     * Bulk delete filtered by status for a specific user.
+     */
+    async deleteByStatus(userId: string, status: string): Promise<number> {
+        return await db('tasks').where({ userId, status }).del();
+    }
 }
 
 export const taskDAO = new TaskDAO();
