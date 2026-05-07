@@ -3,10 +3,12 @@ import type { ITask } from '../models/task.model.ts';
 import { taskDAO } from '../daos/task.dao.ts';
 import { messagingService } from './messaging.service.ts';
 import { Result } from '../utils/result.ts';
+import { createTaskSchema, updateTaskSchema } from '../schemas/task.schema.ts';
 import crypto from 'node:crypto';
 
 /**
  * TaskService - Orchestrates business logic with strict user isolation.
+ * Validation and messaging are now handled here to keep controllers lean.
  */
 export class TaskService {
     private readonly dao: typeof taskDAO;
@@ -33,52 +35,71 @@ export class TaskService {
         return Result.ok(task);
     }
 
-    async createTask(title: string, description: string, userId: string): Promise<Result<ITask>> {
-        if (!title?.trim()) {
-            return Result.fail<ITask>("Title is required");
+    async createTask(data: unknown, userId: string): Promise<Result<ITask>> {
+        try {
+            const validated = await createTaskSchema.validate(data, { abortEarly: false });
+            
+            const newTask: ITask = {
+                id: crypto.randomUUID(),
+                title: validated.title,
+                description: validated.description,
+                status: TaskStatus.PENDING,
+                userId,
+                createdAt: new Date()
+            };
+
+            const createdTask = await this.dao.create(newTask);
+            await this.messaging.sendTaskNotification(createdTask);
+            return Result.ok(createdTask);
+        } catch (err: unknown) {
+            const error = err as { errors?: string[]; message: string };
+            return Result.fail<ITask>(error.errors?.join(', ') || error.message);
         }
-
-        const newTask: ITask = {
-            id: crypto.randomUUID(),
-            title,
-            description,
-            status: TaskStatus.PENDING,
-            userId,
-            createdAt: new Date()
-        };
-
-        const createdTask = await this.dao.create(newTask);
-        await this.messaging.sendTaskNotification(createdTask);
-        return Result.ok(createdTask);
     }
 
-    async deleteTask(id: string, userId: string): Promise<Result<boolean>> {
+    async deleteTask(id: string, userId: string): Promise<Result<void>> {
         const success = await this.dao.delete(id, userId);
         if (!success) {
-            return Result.fail<boolean>("Task not found or permission denied");
+            return Result.fail<void>("Task not found or permission denied");
         }
-        return Result.ok(true);
+        return Result.ok(undefined);
+    }
+
+    async deleteTasksByStatus(userId: string, status?: string): Promise<Result<void>> {
+        if (status) {
+            await this.dao.deleteByStatus(userId, status);
+        } else {
+            await this.dao.deleteAll(userId);
+        }
+        return Result.ok(undefined);
     }
 
     /**
-     * NEW/FIXED: Matches the controller's call to clear user-specific board.
+     * Validates updates and persists them if the user owns the task.
      */
-    async deleteAllTasks(userId: string): Promise<Result<boolean>> {
-        await this.dao.deleteAll(userId);
-        return Result.ok(true);
-    }
+    async updateTask(id: string, userId: string, data: unknown): Promise<Result<ITask>> {
+        try {
+            const validated = await updateTaskSchema.validate(data, { 
+                stripUnknown: true, 
+                abortEarly: false 
+            });
+            
+            // FIX: Explicitly cast to Partial<ITask> to satisfy DAO requirements
+            const updates: Partial<ITask> = { 
+                ...(validated as Partial<ITask>), 
+                updatedAt: new Date() 
+            };
+            
+            const updatedTask = await this.dao.update(id, userId, updates);
 
-    async deleteTasksByStatus(userId: string, status: string): Promise<Result<number>> {
-        const count = await this.dao.deleteByStatus(userId, status);
-        return Result.ok(count);
-    }
-
-    async updateTask(id: string, userId: string, updates: Partial<ITask>): Promise<Result<ITask>> {
-        const updatedTask = await this.dao.update(id, userId, { ...updates, updatedAt: new Date() });
-        if (!updatedTask) {
-            return Result.fail<ITask>("Unauthorized update attempt");
+            if (!updatedTask) {
+                return Result.fail<ITask>("Unauthorized update attempt or task not found");
+            }
+            return Result.ok(updatedTask);
+        } catch (err: unknown) {
+            const error = err as { errors?: string[]; message: string };
+            return Result.fail<ITask>(error.errors?.join(', ') || error.message);
         }
-        return Result.ok(updatedTask);
     }
 }
 
