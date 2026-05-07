@@ -21,6 +21,7 @@ export interface ITask {
     description: string;
     status: TaskStatus;
     userId: string;     // Foreign key reference to User.id
+    projectId: string;  // NEW: Links the task to its parent project
     createdAt: Date;
     updatedAt?: Date;
 }
