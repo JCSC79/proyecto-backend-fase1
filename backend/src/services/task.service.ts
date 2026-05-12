@@ -1,7 +1,6 @@
 import { TaskStatus } from '../models/task.model.ts';
 import type { ITask } from '../models/task.model.ts'; 
 import { taskDAO } from '../daos/task.dao.ts';
-import { projectDAO } from '../daos/project.dao.ts'; // NEW: Required to find default projects
 import { messagingService } from './messaging.service.ts';
 import { Result } from '../utils/result.ts';
 import { createTaskSchema, updateTaskSchema } from '../schemas/task.schema.ts';
@@ -42,18 +41,7 @@ export class TaskService {
         try {
             const validated = await createTaskSchema.validate(data, { abortEarly: false });
             
-            // Logic to handle the new projectId requirement
-            let projectId = (data as { projectId?: string }).projectId;
-            
-            if (!projectId) {
-                // Fetch existing projects to find the "General Project" created during migration
-                const userProjects = await projectDAO.getAllByUser(userId);
-                projectId = userProjects[0]?.id;
-            }
-
-            if (!projectId) {
-                return Result.fail<ITask>("No project found for user");
-            }
+            const projectId = (data as { projectId?: string }).projectId;
 
             const newTask: ITask = {
                 id: crypto.randomUUID(),
@@ -61,7 +49,7 @@ export class TaskService {
                 description: validated.description,
                 status: TaskStatus.PENDING,
                 userId,
-                projectId, // This now satisfies the updated ITask interface
+                ...(projectId ? { projectId } : {}),
                 createdAt: new Date()
             };
 
