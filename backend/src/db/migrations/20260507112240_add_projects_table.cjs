@@ -1,18 +1,34 @@
 /**
- * Stub for migration that was applied to the database on 2026-05-07.
- * This file was accidentally deleted from the repository.
- * The migration added a 'projects' table and a 'projectId' FK column to 'tasks'.
- * 
- * Knex requires this file to exist to validate the migration history,
- * but it will NOT re-run it since it is already recorded in knex_migrations.
- * 
+ * Migration to create projects table and link it to tasks.
  * @param { import("knex").Knex } knex
  */
 exports.up = async function(knex) {
-  // Already applied — this is a recovery stub.
-  // Original migration added projectId (uuid, NOT NULL) FK to tasks table.
+  // 1. Crear la tabla de proyectos (idempotente)
+  const hasProjects = await knex.schema.hasTable('projects');
+  if (!hasProjects) {
+    await knex.schema.createTable('projects', (table) => {
+      table.uuid('id').primary();
+      table.string('name').notNullable();
+      table.uuid('userId').notNullable().references('id').inTable('users').onDelete('CASCADE');
+      table.timestamp('createdAt').defaultTo(knex.fn.now());
+    });
+  }
+
+  // 2. Añadir la columna a la tabla de tareas (idempotente)
+  const hasProjectId = await knex.schema.hasColumn('tasks', 'projectId');
+  if (!hasProjectId) {
+    await knex.schema.alterTable('tasks', (table) => {
+      table.uuid('projectId').nullable().references('id').inTable('projects').onDelete('SET NULL');
+    });
+  }
 };
 
 exports.down = async function(knex) {
-  // No-op stub for rollback safety.
+  const hasProjectId = await knex.schema.hasColumn('tasks', 'projectId');
+  if (hasProjectId) {
+    await knex.schema.alterTable('tasks', (table) => {
+      table.dropColumn('projectId');
+    });
+  }
+  await knex.schema.dropTableIfExists('projects');
 };

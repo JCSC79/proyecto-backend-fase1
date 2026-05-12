@@ -8,7 +8,6 @@ import crypto from 'node:crypto';
 
 /**
  * TaskService - Orchestrates business logic with strict user isolation.
- * Validation and messaging are now handled here to keep controllers lean.
  */
 export class TaskService {
     private readonly dao: typeof taskDAO;
@@ -35,16 +34,22 @@ export class TaskService {
         return Result.ok(task);
     }
 
+    /**
+     * Creates a task and ensures it belongs to a project.
+     */
     async createTask(data: unknown, userId: string): Promise<Result<ITask>> {
         try {
             const validated = await createTaskSchema.validate(data, { abortEarly: false });
             
+            const projectId = (data as { projectId?: string }).projectId;
+
             const newTask: ITask = {
                 id: crypto.randomUUID(),
                 title: validated.title,
                 description: validated.description,
                 status: TaskStatus.PENDING,
                 userId,
+                ...(projectId ? { projectId } : {}),
                 createdAt: new Date()
             };
 
@@ -74,9 +79,6 @@ export class TaskService {
         return Result.ok(undefined);
     }
 
-    /**
-     * Validates updates and persists them if the user owns the task.
-     */
     async updateTask(id: string, userId: string, data: unknown): Promise<Result<ITask>> {
         try {
             const validated = await updateTaskSchema.validate(data, { 
@@ -84,7 +86,6 @@ export class TaskService {
                 abortEarly: false 
             });
             
-            // FIX: Explicitly cast to Partial<ITask> to satisfy DAO requirements
             const updates: Partial<ITask> = { 
                 ...(validated as Partial<ITask>), 
                 updatedAt: new Date() 

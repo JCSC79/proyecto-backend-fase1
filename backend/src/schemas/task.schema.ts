@@ -3,6 +3,7 @@ import { TaskStatus } from '../models/task.model.ts';
 
 /**
  * Validation schema for task creation.
+ * Added projectId validation to support new database structure.
  */
 export const createTaskSchema = yup.object({
     title: yup.string()
@@ -11,7 +12,8 @@ export const createTaskSchema = yup.object({
         .max(50, 'err_title_long'),
     description: yup.string()
         .required('err_desc_required')
-        .min(10, 'err_desc_short')
+        .min(10, 'err_desc_short'),
+    projectId: yup.string().uuid().optional() // Validate as UUID if provided
 });
 
 /**
@@ -25,5 +27,6 @@ export const updateTaskSchema = yup.object({
     description: yup.string()
         .min(10, 'err_desc_short'),
     status: yup.mixed<TaskStatus>()
-        .oneOf(Object.values(TaskStatus), 'err_status_invalid')
+        .oneOf(Object.values(TaskStatus), 'err_status_invalid'),
+    projectId: yup.string().uuid().optional()
 });
