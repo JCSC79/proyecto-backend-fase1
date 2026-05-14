@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Button, InputGroup, TextArea, FormGroup, H4, Intent } from '@blueprintjs/core';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button, InputGroup, TextArea, FormGroup, H4, Intent, HTMLSelect } from '@blueprintjs/core';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../api/axiosInstance';
+import { getProjects } from '../../api/project.api';
 import { useTranslation } from 'react-i18next';
 import { AppToaster } from '../../utils/toaster';
+import type { IProject } from '../../types/project';
 import styles from './TaskForm.module.css';
 
 // 1. Interface for the exact shape of our API error responses
@@ -17,16 +19,24 @@ interface ServerErrorResponse {
 
 interface TaskFormProps {
   onSuccess?: () => void;
+  defaultProjectId?: string;
 }
 
-export const TaskForm: React.FC<TaskFormProps> = ({ onSuccess }) => {
+export const TaskForm: React.FC<TaskFormProps> = ({ onSuccess, defaultProjectId }) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [projectId, setProjectId] = useState<string>(defaultProjectId ?? '');
+
+  const { data: projects = [] } = useQuery<IProject[]>({
+    queryKey: ['projects'],
+    queryFn: getProjects,
+  });
 
   const mutation = useMutation({
-    mutationFn: (newTask: { title: string; description: string }) => api.post('/api/tasks', newTask),
+    mutationFn: (newTask: { title: string; description: string; projectId?: string }) =>
+      api.post('/api/tasks', newTask),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       AppToaster.show({ message: t('taskCreated'), intent: Intent.SUCCESS, icon: 'tick-circle' });
@@ -53,7 +63,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onSuccess }) => {
     },
   });
 
-  const handleClear = () => { setTitle(''); setDescription(''); };
+  const handleClear = () => { setTitle(''); setDescription(''); setProjectId(defaultProjectId ?? ''); };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +71,11 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onSuccess }) => {
       AppToaster.show({ message: t('requiredFieldsError'), intent: Intent.WARNING, icon: 'info-sign' });
       return;
     }
-    mutation.mutate({ title, description });
+    mutation.mutate({
+      title,
+      description,
+      ...(projectId ? { projectId } : {}),
+    });
   };
 
   return (
@@ -88,6 +102,21 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onSuccess }) => {
             className={styles.textarea}
           />
         </FormGroup>
+        {projects.length > 0 && (
+          <FormGroup label={t('project')} labelFor="project-select">
+            <HTMLSelect
+              id="project-select"
+              fill
+              value={projectId}
+              onChange={(e) => setProjectId(e.target.value)}
+            >
+              <option value="">{t('noProject')}</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </HTMLSelect>
+          </FormGroup>
+        )}
         <div className={styles.buttonRow}>
           <Button
             intent="primary"

@@ -1,22 +1,149 @@
 import type { Request, Response } from 'express';
 import { projectDAO } from '../daos/project.dao.ts';
+import type { IProject } from '../models/project.model.ts';
+import crypto from 'node:crypto';
 
 interface AuthRequest extends Request {
   user?: { id: string; role: string; email: string; };
 }
 
 /**
- * ProjectController - Manages project workspaces.
+ * ProjectController - HTTP handlers for project management.
+ *
+ * Visibility model: projects belong to the organisation, not to a single user.
+ * Any authenticated user can see all projects and join any public one.
+ * Only the OWNER can delete a project.
  */
 class ProjectController {
   /**
    * GET /api/projects
-   * Returns all projects for the authenticated user.
+   * Returns all projects visible to the authenticated user, enriched with
+   * settings and the user's membership role (null = not a member).
    */
   async getAll(req: Request, res: Response): Promise<void> {
     const authReq = req as AuthRequest;
-    const projects = await projectDAO.getAllByUser(authReq.user!.id);
+    const projects = await projectDAO.getAll(authReq.user!.id);
     res.json(projects);
+  }
+
+  /**
+   * POST /api/projects
+   * Creates a new project. The creator is automatically added as OWNER.
+   * Accepts optional body fields: color (hex string), description, isPublic.
+   */
+  async create(req: Request, res: Response): Promise<Response | void> {
+    const authReq = req as AuthRequest;
+    const { name, color, description, isPublic } = req.body as {
+      name?: string;
+      color?: string;
+      description?: string;
+      isPublic?: boolean;
+    };
+
+    if (!name || name.trim().length < 2) {
+      return res.status(400).json({ error: 'Project name must be at least 2 characters' });
+    }
+    if (name.trim().length > 50) {
+      return res.status(400).json({ error: 'Project name cannot exceed 50 characters' });
+    }
+    if (color !== undefined && !/^#[0-9a-fA-F]{6}$/.test(color)) {
+      return res.status(400).json({ error: 'Color must be a valid 6-digit hex value (e.g. #4c90f0)' });
+    }
+
+    const project: IProject = {
+      id: crypto.randomUUID(),
+      name: name.trim(),
+      userId: authReq.user!.id,
+      createdAt: new Date(),
+    };
+
+    const created = await projectDAO.create(project, {
+      color: color ?? '#4c90f0',
+      description: description ?? null,
+      isPublic: isPublic ?? true,
+    });
+
+    res.status(201).json(created);
+  }
+
+  /**
+   * DELETE /api/projects/:id
+   * Permanently deletes a project and all its tasks, tags, and memberships
+   * (via DB CASCADE). Only the OWNER can perform this action.
+   */
+  async delete(req: Request, res: Response): Promise<Response | void> {
+    const authReq = req as AuthRequest;
+    const { id } = req.params;
+
+    if (typeof id !== 'string') {
+      return res.status(400).json({ error: 'Invalid project ID' });
+    }
+
+    const success = await projectDAO.delete(id, authReq.user!.id);
+    if (!success) {
+      return res.status(404).json({ error: 'Project not found or you are not the owner' });
+    }
+    res.status(204).send();
+  }
+
+  /**
+   * POST /api/projects/:id/join
+   * Adds the authenticated user as a MEMBER of the project.
+   * Returns 409 if the user is already a member.
+   */
+  async join(req: Request, res: Response): Promise<Response | void> {
+    const authReq = req as AuthRequest;
+    const { id } = req.params;
+
+    if (typeof id !== 'string') {
+      return res.status(400).json({ error: 'Invalid project ID' });
+    }
+
+    const joined = await projectDAO.join(id, authReq.user!.id);
+    if (!joined) {
+      return res.status(409).json({ error: 'You are already a member of this project' });
+    }
+    res.status(200).json({ message: 'Joined project successfully' });
+  }
+
+  /**
+   * DELETE /api/projects/:id/leave
+   * Removes the authenticated user from the project.
+   * OWNERs cannot leave — they must delete the project instead.
+   */
+  async leave(req: Request, res: Response): Promise<Response | void> {
+    const authReq = req as AuthRequest;
+    const { id } = req.params;
+
+    if (typeof id !== 'string') {
+      return res.status(400).json({ error: 'Invalid project ID' });
+    }
+
+    const result = await projectDAO.leave(id, authReq.user!.id);
+
+    if (result === 'not_member') {
+      return res.status(404).json({ error: 'You are not a member of this project' });
+    }
+    if (result === 'owner_cannot_leave') {
+      return res.status(403).json({ error: 'Project owner cannot leave. Delete the project instead.' });
+    }
+
+    res.status(200).json({ message: 'Left project successfully' });
+  }
+
+  /**
+   * GET /api/projects/:id/members
+   * Returns all members of a project with their roles and join dates.
+   */
+  async getMembers(req: Request, res: Response): Promise<Response | void> {
+    const { id } = req.params;
+
+    if (typeof id !== 'string') {
+      return res.status(400).json({ error: 'Invalid project ID' });
+    }
+
+    const members = await projectDAO.getMembers(id);
+    res.json(members);
   }
 }
 

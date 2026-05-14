@@ -152,6 +152,15 @@ i18n
           "terms": "Terms of Service",
           "policy": "Privacy Policy",
           "descriptionText": "Streamline your productivity, organize your day, and achieve your goals faster.",
+          "projects": "Projects",
+          "allProjects": "All Projects",
+          "newProject": "New Project",
+          "project": "Project",
+          "noProject": "No project",
+          "projectCreated": "Project created!",
+          "projectCreateError": "Could not create project. Try again.",
+          "create": "Create",
+          "projectNamePlaceholder": "Project name...",
 
         }
       },
@@ -300,6 +309,15 @@ i18n
           "terms": "Terminos de servicio",
           "policy": "Política de Privacidad",
           "descriptionText": "Optimiza tu productividad, organiza tu día y alcanza tus objetivos más rápido.",
+          "projects": "Proyectos",
+          "allProjects": "Todos los proyectos",
+          "newProject": "Nuevo Proyecto",
+          "project": "Proyecto",
+          "noProject": "Sin proyecto",
+          "projectCreated": "¡Proyecto creado!",
+          "projectCreateError": "No se pudo crear el proyecto. Inténtalo de nuevo.",
+          "create": "Crear",
+          "projectNamePlaceholder": "Nombre del proyecto...",
 
           
         }

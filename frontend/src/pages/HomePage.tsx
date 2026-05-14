@@ -9,6 +9,7 @@ import { Footer } from '../components/layout/Footer';
 import { TaskFilters } from '../components/tasks/TaskFilters';
 import { TaskForm } from '../components/tasks/TaskForm';
 import { TaskBoard } from '../components/tasks/TaskBoard';
+import { ProjectSelector } from '../components/tasks/ProjectSelector';
 import type { Task, TaskStatus } from '../types/task';
 import pageStyles from './pages.module.css';
 import formStyles from '../components/tasks/TaskForm.module.css';
@@ -19,6 +20,7 @@ const HomePage: React.FC = () => {
   const location = useLocation();
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   // Initialize statusFilter from navigation state
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'ALL'>(
     () => (location.state as { statusFilter?: TaskStatus } | null)?.statusFilter ?? 'ALL'
@@ -50,9 +52,10 @@ const HomePage: React.FC = () => {
         task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         task.description.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === 'ALL' || task.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesProject = selectedProjectId === null || task.projectId === selectedProjectId;
+      return matchesSearch && matchesStatus && matchesProject;
     });
-  }, [tasks, searchTerm, statusFilter]);
+  }, [tasks, searchTerm, statusFilter, selectedProjectId]);
 
   const total = tasks?.length ?? 0;
   const completed = tasks?.filter(t => t.status === 'COMPLETED').length ?? 0;
@@ -86,6 +89,11 @@ const HomePage: React.FC = () => {
 
         {!isError && (
           <>
+            <ProjectSelector
+              selectedProjectId={selectedProjectId}
+              onSelect={setSelectedProjectId}
+            />
+
             <TaskFilters
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
@@ -127,7 +135,10 @@ const HomePage: React.FC = () => {
         className={pageStyles.taskDialog}
       >
         <DialogBody>
-          <TaskForm onSuccess={() => setIsFormOpen(false)} />
+          <TaskForm
+            onSuccess={() => setIsFormOpen(false)}
+            defaultProjectId={selectedProjectId ?? undefined}
+          />
         </DialogBody>
       </Dialog>
 

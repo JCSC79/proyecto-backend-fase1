@@ -3,7 +3,7 @@
  * @param { import("knex").Knex } knex
  */
 exports.up = async function(knex) {
-  // 1. Crear la tabla de proyectos (idempotente)
+  // 1) Create table if not exists
   const hasProjects = await knex.schema.hasTable('projects');
   if (!hasProjects) {
     await knex.schema.createTable('projects', (table) => {
@@ -14,7 +14,7 @@ exports.up = async function(knex) {
     });
   }
 
-  // 2. Añadir la columna a la tabla de tareas (idempotente)
+  // 2) Add column to tasks table if not exists
   const hasProjectId = await knex.schema.hasColumn('tasks', 'projectId');
   if (!hasProjectId) {
     await knex.schema.alterTable('tasks', (table) => {

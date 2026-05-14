@@ -31,7 +31,45 @@ const options: swaggerJSDoc.Options = {
             description: { type: 'string' },
             status: { type: 'string', enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED'] },
             userId: { type: 'string' },
+            projectId: { type: 'string', format: 'uuid', nullable: true },
             createdAt: { type: 'string', format: 'date-time' }
+          }
+        },
+        ProjectSettings: {
+          type: 'object',
+          properties: {
+            projectId: { type: 'string', format: 'uuid' },
+            description: { type: 'string', nullable: true },
+            color: { type: 'string', example: '#4c90f0', description: '7-char hex color for the UI chip' },
+            isPublic: { type: 'boolean' },
+            createdAt: { type: 'string', format: 'date-time' }
+          }
+        },
+        Project: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            name: { type: 'string' },
+            userId: { type: 'string', format: 'uuid', description: 'Creator of the project' },
+            createdAt: { type: 'string', format: 'date-time' },
+            settings: { '$ref': '#/components/schemas/ProjectSettings' },
+            memberRole: {
+              type: 'string',
+              enum: ['OWNER', 'MEMBER'],
+              nullable: true,
+              description: 'Role of the requesting user. null means not a member yet.'
+            },
+            memberCount: { type: 'integer', description: 'Total number of members' }
+          }
+        },
+        ProjectMember: {
+          type: 'object',
+          properties: {
+            userId: { type: 'string', format: 'uuid' },
+            name: { type: 'string', nullable: true },
+            email: { type: 'string' },
+            role: { type: 'string', enum: ['OWNER', 'MEMBER'] },
+            joinedAt: { type: 'string', format: 'date-time' }
           }
         },
         ErrorResponse: {
@@ -133,11 +171,12 @@ const options: swaggerJSDoc.Options = {
       },
       '/api/tasks': {
         get: {
-          summary: 'Get my tasks (user-isolated)',
+          summary: 'Get visible tasks (own + project member tasks)',
+          description: 'Returns tasks the user created AND tasks in projects they are a member of. Write operations (edit/delete) remain restricted to the task creator.',
           tags: ['Tasks'],
           responses: {
             200: {
-              description: 'Array of tasks owned by the authenticated user',
+              description: 'Array of tasks visible to the authenticated user',
               content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Task' } } } }
             },
             401: { description: 'Missing or invalid token' }
@@ -264,6 +303,114 @@ const options: swaggerJSDoc.Options = {
             200: { description: 'Role updated' },
             403: { description: 'Admin role required' },
             404: { description: 'User not found' }
+          }
+        }
+      },
+      '/api/projects': {
+        get: {
+          summary: 'List all projects (organisation-wide)',
+          description: 'Returns all projects visible to authenticated users. Each project includes its settings and the requesting user\'s membership role (null = not a member yet).',
+          tags: ['Projects'],
+          responses: {
+            200: {
+              description: 'Array of enriched projects',
+              content: {
+                'application/json': {
+                  schema: { type: 'array', items: { '$ref': '#/components/schemas/Project' } }
+                }
+              }
+            },
+            401: { description: 'Not authenticated' }
+          }
+        },
+        post: {
+          summary: 'Create a new project',
+          description: 'Creates a project and automatically adds the creator as OWNER. Also creates a project_settings row.',
+          tags: ['Projects'],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['name'],
+                  properties: {
+                    name: { type: 'string', minLength: 2, maxLength: 50, example: 'Backend Refactor' },
+                    color: { type: 'string', example: '#e d6c02', description: '7-char hex. Defaults to #4c90f0' },
+                    description: { type: 'string', nullable: true, example: 'Refactor the API layer' },
+                    isPublic: { type: 'boolean', default: true }
+                  }
+                }
+              }
+            }
+          },
+          responses: {
+            201: {
+              description: 'Project created with settings and OWNER membership',
+              content: { 'application/json': { schema: { '$ref': '#/components/schemas/Project' } } }
+            },
+            400: { description: 'Validation error (name too short/long or invalid color)' },
+            401: { description: 'Not authenticated' }
+          }
+        }
+      },
+      '/api/projects/{id}': {
+        delete: {
+          summary: 'Delete a project (OWNER only)',
+          description: 'Permanently deletes the project and ALL its tasks, tags, settings and memberships via DB CASCADE. Only the project OWNER can perform this action.',
+          tags: ['Projects'],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+          responses: {
+            204: { description: 'Project deleted (no content)' },
+            403: { description: 'Not the owner of this project' },
+            404: { description: 'Project not found' },
+            401: { description: 'Not authenticated' }
+          }
+        }
+      },
+      '/api/projects/{id}/join': {
+        post: {
+          summary: 'Join a project as MEMBER',
+          description: 'Adds the authenticated user to the project with role MEMBER. Returns 409 if already a member.',
+          tags: ['Projects'],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+          responses: {
+            200: { description: 'Joined successfully' },
+            409: { description: 'Already a member of this project' },
+            401: { description: 'Not authenticated' }
+          }
+        }
+      },
+      '/api/projects/{id}/leave': {
+        delete: {
+          summary: 'Leave a project (MEMBER only)',
+          description: 'Removes the authenticated user from the project. OWNERs cannot leave — they must delete the project instead.',
+          tags: ['Projects'],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+          responses: {
+            200: { description: 'Left project successfully' },
+            403: { description: 'Owner cannot leave — delete the project instead' },
+            404: { description: 'Not a member of this project' },
+            401: { description: 'Not authenticated' }
+          }
+        }
+      },
+      '/api/projects/{id}/members': {
+        get: {
+          summary: 'List members of a project',
+          description: 'Returns all members with their roles, names and join dates.',
+          tags: ['Projects'],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+          responses: {
+            200: {
+              description: 'Array of project members',
+              content: {
+                'application/json': {
+                  schema: { type: 'array', items: { '$ref': '#/components/schemas/ProjectMember' } }
+                }
+              }
+            },
+            401: { description: 'Not authenticated' }
           }
         }
       }

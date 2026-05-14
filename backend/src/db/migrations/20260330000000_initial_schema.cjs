@@ -2,7 +2,7 @@
  * @param { import("knex").Knex } knex
  */
 exports.up = async function(knex) {
-  // 1. Users Table: Required as the authority for task ownership
+  // 1) Users Table: Required as the authority for task ownership
   await knex.schema.createTable('users', (table) => {
     table.uuid('id').primary();
     table.string('email').notNullable().unique();
@@ -13,7 +13,7 @@ exports.up = async function(knex) {
     table.timestamp('createdAt').defaultTo(knex.fn.now());
   });
 
-  // 2. Tasks Table: Shielded with mandatory User relationship
+  // 2) Tasks Table: Shielded with mandatory User relationship
   await knex.schema.createTable('tasks', (table) => {
     table.uuid('id').primary();
     table.string('title').notNullable();

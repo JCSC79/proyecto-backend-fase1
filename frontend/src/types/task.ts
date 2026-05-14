@@ -1,6 +1,5 @@
 /**
  * Task interface aligned with Backend ITask and TaskStatus
- * 
  */
 export type TaskStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
 
@@ -9,6 +8,7 @@ export interface Task {
   title: string;
   description: string;
   status: TaskStatus;
+  projectId?: string;
   createdAt?: string;
   updatedAt?: string;
 }

@@ -7,16 +7,35 @@ const config = require('../../knexfile.cjs');
 const db = knex(config.development);
 
 /**
- * TaskDAO - Data Access Object with strict User Isolation.
- * Every method ensures that a user can only interact with their own data.
+ * TaskDAO - Data Access Object for tasks.
+ *
+ * Visibility model (Odoo-inspired):
+ *   A user can READ a task if:
+ *     a) they created it (tasks.userId = me), OR
+ *     b) the task belongs to a project they are a member of
+ *        (tasks.projectId IN project_members WHERE userId = me)
+ *
+ *   WRITE operations (update, delete) remain restricted to the creator
+ *   to avoid accidental data loss by non-owning project members.
  */
 class TaskDAO {
-    
+
     /**
-     * Retrieves tasks belonging to a specific user.
+     * Returns all tasks visible to the user:
+     *   - tasks the user created (any project or no project), PLUS
+     *   - tasks in projects the user is a member of (created by others).
      */
     async getAll(userId: string): Promise<ITask[]> {
-        return await db<ITask>('tasks').where({ userId }).select('*');
+        return await db<ITask>('tasks')
+            .where({ userId })
+            .orWhere(function () {
+                // Include tasks from projects where the user is a member
+                this.whereNotNull('projectId').whereIn(
+                    'projectId',
+                    db('project_members').select('projectId').where({ userId })
+                );
+            })
+            .select('*');
     }
 
     /**
@@ -27,10 +46,21 @@ class TaskDAO {
     }
 
     /**
-     * Finds a task by ID ensuring it belongs to the requesting user.
+     * Finds a task by ID using the same visibility rule as getAll:
+     * the user must be either the creator OR a member of the task's project.
      */
     async getById(id: string, userId: string): Promise<ITask | undefined> {
-        return await db<ITask>('tasks').where({ id, userId }).first();
+        return await db<ITask>('tasks')
+            .where({ id, userId })
+            .orWhere(function () {
+                this.where('id', id)
+                    .whereNotNull('projectId')
+                    .whereIn(
+                        'projectId',
+                        db('project_members').select('projectId').where({ userId })
+                    );
+            })
+            .first();
     }
 
     async create(task: ITask): Promise<ITask> {
